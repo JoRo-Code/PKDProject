@@ -1,0 +1,41 @@
+GROUP RULES
+
+	WORK
+Where, and how often will you meet while working?
+-
+	
+How do you communicate in the group - what channels? - when?
+	facebook messenger. At least give an update in the end of each day of
+	what one have done. 
+
+How will you use other tools, like trello or git?
+	gitHub will be used with branches, which merges into main
+
+How do you coordinate the final hand-in?
+-
+
+How do you ensure everyone knows what they should do after their current task, and what everyone else is working on?
+	There will be a file which states which tasks everyone should be
+	working on. This file also includes prioritized upcoming tasks.
+	There will be ongoing updates and prioritizing of new tasks.  
+		
+
+	SURPRISES
+What should you do if somebody feels left outside?
+	1. reach out to the group
+	2. contact supervisor
+
+What should you do if someone gets stuck on their current task?
+	1. Reach out to the group to get input. 
+	2. 
+
+What happens if someone feels another person isn’t doing their fair share?
+	1. reach out to the person
+	2. the other member of the group
+	3. supervisor
+
+What happens if someone is not communicating in the manner or frequency agreed upon?
+	1. reach out to the person
+	2. the other member of the group
+	3. supervisor
+
