@@ -9,7 +9,10 @@ How do you communicate in the group - what channels? - when?
 	what one have done. 
 
 How will you use other tools, like trello or git?
-	gitHub will be used with branches, which merges into main
+	1. gitHub will be used with branches, which merges into main
+	2. Commit before changing another section. Where a section is e.g. an
+	area of code with the same purpose. Committing this way will enable
+	readable history of the code.  
 
 How do you coordinate the final hand-in?
 -
@@ -26,8 +29,11 @@ What should you do if somebody feels left outside?
 	2. contact supervisor
 
 What should you do if someone gets stuck on their current task?
+	You are the one responsible to solve your task. If your task takes
+	longer time than expected its important to let the other group members
+	know. 
 	1. Reach out to the group to get input. 
-	2. 
+ 	2. 
 
 What happens if someone feels another person isn’t doing their fair share?
 	1. reach out to the person
