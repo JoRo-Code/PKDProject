@@ -1,6 +1,4 @@
-
-
-
+Date
 
 GROUP RULES
 
@@ -51,4 +49,5 @@ What happens if someone is not communicating in the manner or frequency agreed u
 	1. reach out to the person
 	2. the other member of the group
 	3. supervisor
+
 
