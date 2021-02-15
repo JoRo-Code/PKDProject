@@ -1,0 +1,21 @@
+Monday 2021-02-08
+We had a meeting for two hours where we went through the group rules, usage of git, trello and project ideas.
+
+- The group rules are now available in out GitHub repository and may be updated if changes are required.
+- Everyone in the group knows how to push, add, commit, pull and fix conflicts using git.
+- We have a trello group where we keep track of our ongoing tasks.
+- We have some project ideas and will decide which one to go with during the next meeting.
+
+
+Thursday 2021-02-11
+We had another meeting for around 30 minutes where we wrote a mail to Ghafour regarding our project idea.
+
+- The project idea is a messaging program which to begin with, allows two users to communicate in real time. 
+- Other aspects of the project will decided and implemented as time goes on.
+
+
+Monday 2021-02-15
+We had a meeting for around 1,5 hours we did some research regarding servers. 
+After the inital meeting we had our first meeting with Ghafour for 30 minutes, 
+where we talked about our plan and got some tips for the project.
+Finally, we started working on our introduction for the report.
