@@ -2,8 +2,8 @@
 import Data.Array
                                      
                                                          
-data Cell = Empty State | Ship State deriving (Show, Eq)     
-data State = Checked | NotChecked deriving (Show, Eq)        
+data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)     
+data SquareState = Checked | NotChecked deriving (Show, Eq)        
 data Direction = Horizontal | Vertical deriving (Show, Eq)   
 
 type Board = Array (Int, Int) Cell                       
@@ -37,7 +37,7 @@ getCell b c = b ! c
 
 -- PRE: coordinates are in range
 -- returns the state of the cell at coordinates
-getState :: Board -> Coordinates -> State
+getState :: Board -> Coordinates -> SquareState
 getState b c =  case getCell b c of
                      Empty s -> s
                      Ship s -> s
@@ -85,7 +85,7 @@ cellList = elems
 
 -- Board to list of state
 -- Used to print other players board, but without displaying ships, just where player have already checked.
-stateList :: Board -> [State]
+stateList :: Board -> [SquareState]
 stateList b = map (\case (Empty s) -> s; (Ship s) -> s) (elems b)
 
 
