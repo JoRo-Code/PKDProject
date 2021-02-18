@@ -67,7 +67,7 @@ noCollision b _ 0 _ = True
 noCollision b (r, c) s d | b ! (r, c) == Ship NotChecked = False
                          | otherwise = noCollision b (r + rowOffset, c + colOffset) (s - 1) d
                            where (rowOffset, colOffset) = offset d
-
+-- calculate offset in row and col
 offset :: Direction -> (Row, Col)
 offset Vertical = (1, 0)
 offset Horizontal = (0, 1)
