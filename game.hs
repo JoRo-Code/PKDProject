@@ -1,5 +1,7 @@
 {-# LANGUAGE LambdaCase #-} 
 
+module Game where
+
 ------------------- Imports -------------------
 import Data.Array
 import System.IO
