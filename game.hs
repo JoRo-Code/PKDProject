@@ -11,7 +11,7 @@ data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)
 data SquareState = Checked | NotChecked deriving (Show, Eq)        
 data Direction = Horizontal | Vertical deriving (Show, Eq)   
 
-type Board = Array (Int, Int) Cell                       
+type Board = Array (Row, Col) Cell                  
 type Row = Int                                           
 type Col = Int                                           
 type Coordinates = (Row, Col)
@@ -52,27 +52,29 @@ getState b c =  case getCell b c of
 -- PRE: coordinates are in range, ship placement wont go out of bounds
 placeShip :: Board -> Coordinates -> ShipSize -> Direction -> Board
 placeShip b _ 0 _= b
-placeShip b (r, c) s Horizontal = placeShip (b // [((r, c), Ship NotChecked)]) (r, c + 1) (s - 1) Horizontal
-placeShip b (r, c) s Vertical = placeShip (b // [((r, c), Ship NotChecked)]) (r + 1, c) (s - 1) Vertical
+placeShip b (r, c) s d = placeShip (b // [((r, c), Ship NotChecked)]) (r + rowOffset, c + colOffset) (s - 1) d
+                        where (rowOffset, colOffset) = offset d
 
 validShipPlacement :: Board -> Coordinates -> ShipSize -> Direction -> Bool
-validShipPlacement b (r, c) s Horizontal = validCoordinates (getBoardSize b) (r + s - 1, c) 
-                                           && noCollision b (r, c) s Horizontal  -- since one of the ship parts are placed in
-validShipPlacement b (r, c) s Vertical   = validCoordinates (getBoardSize b) (r, c + s - 1) 
-                                           && noCollision b (r, c) s Vertical   -- the cell of the coordinates we subtract 1
+validShipPlacement b (r, c) s d = validCoordinates (getBoardSize b) (r + rowOffset * s - 1, c + colOffset * s - 1) -- (-1) because the ship part on (r, c) is included
+                                && validCoordinates (getBoardSize b) (r, c) 
+                                && noCollision b (r, c) s d
+                                where (rowOffset, colOffset) = offset d
 
 -- cheeck if the ship the user want to place will collide with any existing ships
 noCollision :: Board -> Coordinates -> ShipSize -> Direction -> Bool
 noCollision b _ 0 _ = True
-noCollision b (r, c) s Horizontal | b ! (r, c) == Ship NotChecked = False
-                                  | otherwise = noCollision b (r, c + 1) (s - 1) Horizontal
-noCollision b (r, c) s Vertical   | b ! (r, c) == Ship NotChecked = False
-                                  | otherwise = noCollision b (r + 1, c) (s - 1) Vertical                               
+noCollision b (r, c) s d | b ! (r, c) == Ship NotChecked = False
+                         | otherwise = noCollision b (r + rowOffset, c + colOffset) (s - 1) d
+                           where (rowOffset, colOffset) = offset d
+
+offset :: Direction -> (Row, Col)
+offset Vertical = (1, 0)
+offset Horizontal = (0, 1)
 
 -- returns boardsize from given board
 getBoardSize :: Board -> BoardSize
 getBoardSize b =  round . sqrt . fromIntegral $ length b
-
 
 -- Should only be called after all ships have been placed
 -- Check if all ships are Checked
