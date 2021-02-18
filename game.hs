@@ -2,6 +2,7 @@
 
 ------------------- Imports -------------------
 import Data.Array
+import System.IO
 ------------------- Imports -------------------
 
 data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)     
@@ -85,12 +86,26 @@ cellList = elems
 stateList :: Board -> [SquareState]
 stateList b = map (\case (Empty s) -> s; (Ship s) -> s) (elems b)
 
-
-arrayToFile :: Board -> IO()
-arrayToFile b = undefined
-
 b :: Board
 b = initBoard 10
+
+------------------- File -------------------
+
+path :: FilePath 
+path = "fileTest.txt"
+
+arrayToFile :: Board -> IO()
+arrayToFile b = do
+     appendFile path $ show (elems b)
+
+fileToArray :: IO ()
+fileToArray = do
+    handle  <- openFile path ReadMode
+    content <- hGetContents handle
+    putStr content
+    hClose handle
+
+------------------- File -------------------
 
 {- 
 When player1 is playing their action manipulates player2's array. What's being displayed should just be the states (and in case of ship, display in other way)
