@@ -48,3 +48,8 @@ boardAsPicture board =
             ]
 
 main = display (InWindow "Nice Window" (200, 200) (10, 10)) white (Circle 80)
+
+
+--  ghc -threaded graphics
+-- https://mmhaskell.com/blog/2019/3/25/making-a-glossy-game-part-1
+-- https://hackage.haskell.org/package/gloss-examples-1.13.0.3/src/
