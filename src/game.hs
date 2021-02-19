@@ -5,8 +5,6 @@ import Data.Array
 data SquareState = Checked | NotChecked deriving (Show, Eq)
 data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)
 
-
-
 type Row = Int
 type Col = Int
 type CellCoordinates = (Row, Col)
@@ -15,9 +13,10 @@ type Board = Array (Row, Col) Cell
 
 type BoardSize = Int
 
-data Game = Game { gameBoard :: Board } deriving (Show, Eq)
+data Game = Game { gameBoardPlayer :: Board , 
+                   gameBoardAI :: Board} deriving (Show, Eq)
 
-n = 3
+n = 10
 
 screenWidth :: Int
 screenWidth = 640
@@ -37,4 +36,5 @@ initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotCheck
              where boardIndex = ((0, 0), (s - 1, s - 1)) 
 
 initialGame :: Game
-initialGame = Game { gameBoard = initBoard n }
+initialGame = Game { gameBoardPlayer = initBoard n,
+                    gameBoardAI = initBoard n}
