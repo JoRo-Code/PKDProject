@@ -6,7 +6,8 @@ import Graphics.Gloss
 
 import Game
 
-n :: Int
+
+
 n = 3
 
 screenWidth :: Int
@@ -47,8 +48,22 @@ boardAsPicture board =
             , boardGrid
             ]
 
-main = display (InWindow "Nice Window" (200, 200) (10, 10)) white (Circle 80)
+main :: IO ()
+main = play window backgroundColor fps initialgame drawingFunc inputHandlerFunc (const id)
 
+backgroundColor :: Color
+
+fps :: Int
+fps = 30
+
+initialGame :: World
+
+drawingFunc :: World -> Picture
+
+inputHandlerFunc :: Event -> World -> World
+
+-- [Float -> Float -> world -> world]
+-- (const id)
 
 --  ghc -threaded graphics
 -- https://mmhaskell.com/blog/2019/3/25/making-a-glossy-game-part-1
