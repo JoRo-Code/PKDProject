@@ -1,4 +1,4 @@
-Monday 2021-02-08
+Monday 2021-02-08 - 2 hours
 We had a meeting for two hours where we went through the group rules, usage of git, trello and project ideas.
 
 - The group rules are now available in out GitHub repository and may be updated if changes are required.
@@ -6,16 +6,44 @@ We had a meeting for two hours where we went through the group rules, usage of g
 - We have a trello group where we keep track of our ongoing tasks.
 - We have some project ideas and will decide which one to go with during the next meeting.
 
+- Discussed project ideas
+    concluded with Battleships
 
-Thursday 2021-02-11
+
+Thursday 2021-02-11 - 30 minutes
+- Reworked idea with a chat-server
+
 We had another meeting for around 30 minutes where we wrote a mail to Ghafour regarding our project idea.
 
 - The project idea is a messaging program which to begin with, allows two users to communicate in real time. 
 - Other aspects of the project will decided and implemented as time goes on.
 
 
-Monday 2021-02-15
-We had a meeting for around 1,5 hours we did some research regarding servers. 
+Monday 2021-02-15 - 3 hours
+We had a meeting where we did some research regarding servers. 
 After the inital meeting we had our first meeting with Ghafour for 30 minutes, 
 where we talked about our plan and got some tips for the project.
 Finally, we started working on our introduction for the report. We created a flowchart.
+
+Tuesday 2021-02-16
+We decided to drop chat-server in favor for battleships due to the need of a lot of research in unfamiliar areas.
+Battleships is something we haven’t constructed, but is much closer to the course scope.
+
+Wednesday 2021-02-17 - 2 hours
+First session working on battleships.
+- Datastructures, the board and it components.
+- A few bottom-up functions for manipulating cell values.
+- Research of how to construct a 2D-array.
+    - here we found information of how to construct and manipulate arrays 
+    https://github.com/tsoding/profun/tree/master/functional/src
+    The above mentioned project gives great inspiration for a 2D-array game with gloss
+
+Thursday 2021-02-18 - 1 hour
+- added graphics module
+- improved readability of a few functions in game module
+- Discussed how to make an ai with random and a stack
+
+- Gloss research 
+    https://mmhaskell.com/blog/2019/3/25/making-a-glossy-game-part-1
+    https://hackage.haskell.org/package/gloss-examples-1.13.0.3/src/    
+
