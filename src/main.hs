@@ -7,8 +7,7 @@ import Game         -- initialGame
 import Logic        -- eventHandler
 import Rendering    -- drawGame
 
-screenWidth = 640
-screenHeight = 460
+
 window = InWindow "BattleShips" (screenWidth, screenHeight) (100, 100)
 
 backgroundColor = makeColor 0 0 100 255
@@ -21,7 +20,7 @@ main = play
        fps
        initialGame
        drawGame
-       eventHandler
+       eventHandler --eventHandler
        (const id)
 
 
