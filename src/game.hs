@@ -18,18 +18,6 @@ data Game = Game { gameBoardPlayer :: Board ,
 
 n = 10
 
-screenWidth :: Int
-screenWidth = 640
-screenHeight :: Int
-screenHeight = 460
-
-cellWidth :: Float
-cellWidth = fromIntegral screenWidth / fromIntegral n
-
-cellHeight :: Float
-cellHeight = fromIntegral screenHeight / fromIntegral n
-
-
 -- Create a new board, a 2d array, where all cells are empty notchecked initially.                                                         
 initBoard :: BoardSize -> Board        
 initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
@@ -37,4 +25,4 @@ initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotCheck
 
 initialGame :: Game
 initialGame = Game { gameBoardPlayer = initBoard n,
-                    gameBoardAI = initBoard n}
+                     gameBoardAI = initBoard n}

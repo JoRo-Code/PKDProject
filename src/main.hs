@@ -10,7 +10,7 @@ import Rendering    -- drawGame
 
 window = InWindow "BattleShips" (screenWidth, screenHeight) (100, 100)
 
-backgroundColor = makeColor 0 0 100 255
+backgroundColor = makeColor 0 0 0 0
 fps = 30
 
 main :: IO ()
