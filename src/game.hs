@@ -2,20 +2,23 @@ module Game where
 
 import Data.Array
 
-data SquareState = Checked | NotChecked deriving (Show, Eq)
-data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)
+data SquareState = Checked | NotChecked                 deriving (Show, Eq)
+data Cell        = Empty SquareState | Ship SquareState deriving (Show, Eq)
+data Player      = User | AI                            deriving (Show, Eq)
+data GameStage   = Placing Player | Shooting Player     deriving (Show, Eq)
 
-type Row = Int
-type Col = Int
-type CellCoordinates = (Row, Col)
+type Row         = Int
+type Col         = Int
+type Coordinates = (Row, Col)
+type Board       = Array (Row, Col) Cell
+type BoardSize   = Int
 
-type Board = Array (Row, Col) Cell
+data Game = Game { gameBoardUser :: Board , 
+                   gameBoardAI   :: Board,
+                   gameStage     :: GameStage
+                 } deriving (Show, Eq)
 
-type BoardSize = Int
-
-data Game = Game { gameBoardPlayer :: Board , 
-                   gameBoardAI :: Board} deriving (Show, Eq)
-
+n :: BoardSize
 n = 10
 
 -- Create a new board, a 2d array, where all cells are empty notchecked initially.                                                         
@@ -23,6 +26,8 @@ initBoard :: BoardSize -> Board
 initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
              where boardIndex = ((0, 0), (s - 1, s - 1)) 
 
-initialGame :: Game
-initialGame = Game { gameBoardPlayer = initBoard n,
-                     gameBoardAI = initBoard n}
+initGame :: Game
+initGame = Game { gameBoardUser = initBoard n,
+                  gameBoardAI   = initBoard n,
+                  gameStage     = Placing User
+                }

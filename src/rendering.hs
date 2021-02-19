@@ -43,4 +43,4 @@ drawGame :: Game -> Picture
 drawGame game = translate (fromIntegral screenWidth * (-0.5))
                                (fromIntegral screenHeight * (-0.5))
                                frame
-        where frame = boardAsRunningPicture (gameBoardPlayer game)
+        where frame = boardAsRunningPicture (gameBoardUser game)

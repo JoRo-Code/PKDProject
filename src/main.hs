@@ -8,9 +8,13 @@ import Logic        -- eventHandler
 import Rendering    -- drawGame
 
 
+window :: Display
 window = InWindow "BattleShips" (screenWidth, screenHeight) (100, 100)
 
+backgroundColor :: Color
 backgroundColor = makeColor 0 0 0 0
+
+fps :: Int
 fps = 30
 
 main :: IO ()
@@ -18,7 +22,7 @@ main = play
        window
        backgroundColor
        fps
-       initialGame
+       initGame
        drawGame
        eventHandler --eventHandler
        (const id)
