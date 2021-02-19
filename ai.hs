@@ -126,4 +126,4 @@ If input is valid, update player2's array and call the draw func
 
 
 aiPlaceShip :: Board -> Coordinates -> ShipSize -> Direction -> Board
-aiPlaceShip 
+aiPlaceShip = undefined
