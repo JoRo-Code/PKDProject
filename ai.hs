@@ -1,11 +1,12 @@
 {-# LANGUAGE LambdaCase #-} 
 
-module Game where
+module AI where
 
 ------------------- Imports -------------------
 import Data.Array
 import System.IO
 import System.Random
+import Graphics.Gloss
 ------------------- Imports -------------------
 
 data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)     
@@ -125,5 +126,5 @@ If input is valid, update player2's array and call the draw func
 -}
 
 
-aiPlaceShip :: Board -> Coordinates -> ShipSize -> Direction -> Board
-aiPlaceShip 
+--aiPlaceShip :: Board -> Coordinates -> ShipSize -> Direction -> Board
+--aiPlaceShip 
