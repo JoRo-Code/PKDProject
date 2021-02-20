@@ -1,8 +1,11 @@
+{-# LANGUAGE LambdaCase #-} 
 module Rendering where
 
 import Graphics.Gloss
-
+import Data.Array
 import Game
+
+
 
 boardGridColor = makeColorI 255 255 255 255
 
@@ -28,7 +31,7 @@ placingBoardPos = ((0,0),(fromIntegral screenWidth*0.5, fromIntegral screenHeigh
 boardWidth ((x1,y1),(x2,y2)) = x2-x1
 boardHeight ((x1,y1),(x2,y2)) = y2-y1
 
-snapPictureToCell picture (row, column) boardPos@((x1,y1),(x2,y2)) = translateCorrect (x, y) picture
+snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (row, column)  = translateCorrect (x, y) picture
     where x = x1 + fromIntegral column * cellW + cellW * 0.5
           y = y1 + fromIntegral row * cellH + cellH * 0.5
           cellW = cellWidth (boardWidth boardPos)
@@ -57,7 +60,13 @@ foo  = pictures [ rotate 45.0 $ rectangleSolid 50 10.0
                  , rotate (-45.0) $ rectangleSolid 50 10.0
                  ]
 
+cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
+cellsToPicture board pos c pic =  pictures
+                            $ map (snapPictureToCell pic pos . fst)
+                            $ filter (\(_, e) -> e == c)
+                            $ assocs board
 
+checked board pos = cellsToPicture board pos (Empty Checked) foo
 
 shootingBoardGrid = boardGrid shootingBoardPos
 placingBoardGrid = boardGrid placingBoardPos
@@ -70,8 +79,9 @@ boardAsRunningPicture board =
               color boardGridColor shootingBoardGrid,
               color boardGridColor placingBoardGrid,
               color boardGridColor $
-              snapPictureToCell foo (9, 2) shootingBoardPos,
-              snapPictureToCell foo (0, 0) placingBoardPos
+              color boardGridColor $ snapPictureToCell foo shootingBoardPos (9, 2),
+              color boardGridColor $ snapPictureToCell foo placingBoardPos (0, 0),
+              color green $ checked board shootingBoardPos
              ]
 
 translateCorrect :: (Float, Float) -> Picture -> Picture
@@ -79,7 +89,7 @@ translateCorrect (width, height) = translate width $ negate height
 
 
 drawGame :: Game -> Picture
-drawGame game = translateCorrect ((fromIntegral screenWidth * (-0.5)),
-                               (fromIntegral screenHeight * (-0.5)))
+drawGame game = translateCorrect (fromIntegral screenWidth * (-0.5),
+                               fromIntegral screenHeight * (-0.5))
                                frame
         where frame = boardAsRunningPicture (gameBoardUser game)
