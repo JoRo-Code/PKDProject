@@ -9,8 +9,9 @@ data GameStage   = Placing Player    | Shooting Player            deriving (Show
 
 type Row         = Int
 type Col         = Int
-type Coordinates = (Row, Col)
-type Board       = Array (Row, Col) Cell
+type CellCoord   = (Col, Row)
+type ScreenCoord = (Float, Float)
+type Board       = Array (Col, Row) Cell
 type BoardSize   = Int
 
 data Game = Game { gameBoardUser :: Board , 

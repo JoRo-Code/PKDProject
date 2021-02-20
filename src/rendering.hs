@@ -9,7 +9,7 @@ import Game
 
 boardGridColor = makeColorI 255 255 255 255
 
-type BoardPos = ((Float,Float),(Float,Float))
+type BoardPos = (ScreenCoord, ScreenCoord)
 
 screenWidth :: Int
 screenWidth = 1400
@@ -31,9 +31,9 @@ placingBoardPos = ((0,0),(fromIntegral screenWidth*0.5, fromIntegral screenHeigh
 boardWidth ((x1,y1),(x2,y2)) = x2-x1
 boardHeight ((x1,y1),(x2,y2)) = y2-y1
 
-snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (row, column)  = translateCorrect (x, y) picture
-    where x = x1 + fromIntegral column * cellW + cellW * 0.5
-          y = y1 + fromIntegral row * cellH + cellH * 0.5
+snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (row, column) = translate x y picture
+    where x = x1 + fromIntegral column * cellW + cellW / 2
+          y = y1 + fromIntegral row * cellH + cellH / 2
           cellW = cellWidth (boardWidth boardPos)
           cellH = cellHeight (boardHeight boardPos)
  
@@ -43,10 +43,10 @@ snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (row, column)  = translateC
 boardGrid boardPos@((x1,y1),(x2,y2)) =
     pictures
     $ concatMap (\i -> [ line [ (x1 + i * cellW, 0.0)
-                              , (x1 + i * cellW,  -boardH)
+                              , (x1 + i * cellW,  boardH)
                               ]
-                       , line [ (x1 + 0.0, i * (-cellH))
-                              , (x1 + boardW, i * (-cellH))
+                       , line [ (x1 + 0.0, i * cellH)
+                              , (x1 + boardW, i * cellH)
                               ]
                        ])
       [0.0 .. fromIntegral n]
@@ -80,16 +80,12 @@ boardAsRunningPicture board =
               color boardGridColor placingBoardGrid,
               color boardGridColor $
               color boardGridColor $ snapPictureToCell foo shootingBoardPos (9, 2),
-              color boardGridColor $ snapPictureToCell foo placingBoardPos (0, 0),
+              color green $ snapPictureToCell foo placingBoardPos (0, 0),
               color green $ checked board shootingBoardPos
              ]
 
-translateCorrect :: (Float, Float) -> Picture -> Picture
-translateCorrect (width, height) = translate width $ negate height
-
-
 drawGame :: Game -> Picture
-drawGame game = translateCorrect (fromIntegral screenWidth * (-0.5),
-                               fromIntegral screenHeight * (-0.5))
-                               frame
+drawGame game = translate (fromIntegral screenWidth * (-0.5))
+                          (fromIntegral screenHeight * (-0.5))
+                           frame
         where frame = boardAsRunningPicture (gameBoardUser game)
