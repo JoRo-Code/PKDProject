@@ -13,9 +13,10 @@ screenWidth = 1400
 screenHeight :: Int
 screenHeight = 700
 
-cellWidth width n =  width / fromIntegral n
 
-cellHeight height n =  height / fromIntegral n
+cellWidth width =  width / fromIntegral n
+
+cellHeight height =  height / fromIntegral n
 
 shootingBoardPos :: BoardPos
 shootingBoardPos = ((fromIntegral screenWidth*0.5,0),(fromIntegral screenWidth, fromIntegral screenHeight))
@@ -23,16 +24,20 @@ shootingBoardPos = ((fromIntegral screenWidth*0.5,0),(fromIntegral screenWidth, 
 placingBoardPos :: BoardPos
 placingBoardPos = ((0,0),(fromIntegral screenWidth*0.5, fromIntegral screenHeight))
 
-{-
-    ( ((fromIntegral screenWidth)*0.5,                             0),
-                     (fromIntegral screenWidth,         fromIntegral screenHeight) )
--}
 
 boardWidth ((x1,y1),(x2,y2)) = x2-x1
 boardHeight ((x1,y1),(x2,y2)) = y2-y1
 
+snapPictureToCell picture (row, column) boardPos@((x1,y1),(x2,y2)) = translateCorrect (x, y) picture
+    where x = x1 + fromIntegral column * cellW + cellW * 0.5
+          y = y1 + fromIntegral row * cellH + cellH * 0.5
+          cellW = cellWidth (boardWidth boardPos)
+          cellH = cellHeight (boardHeight boardPos)
+ 
+
+
 --boardGrid :: Picture
-boardGrid n boardPos@((x1,y1),(x2,y2)) =
+boardGrid boardPos@((x1,y1),(x2,y2)) =
     pictures
     $ concatMap (\i -> [ line [ (x1 + i * cellW, 0.0)
                               , (x1 + i * cellW,  -boardH)
@@ -42,8 +47,8 @@ boardGrid n boardPos@((x1,y1),(x2,y2)) =
                               ]
                        ])
       [0.0 .. fromIntegral n]
-      where cellW = cellWidth (boardWidth boardPos) n
-            cellH = cellHeight (boardHeight boardPos) n
+      where cellW = cellWidth (boardWidth boardPos)
+            cellH = cellHeight (boardHeight boardPos)
             boardH = boardHeight boardPos
             boardW = boardWidth boardPos
 
@@ -54,8 +59,8 @@ foo  = pictures [ rotate 45.0 $ rectangleSolid 50 10.0
 
 
 
-shootingBoardGrid = boardGrid 10 shootingBoardPos
-placingBoardGrid = boardGrid 10 placingBoardPos
+shootingBoardGrid = boardGrid shootingBoardPos
+placingBoardGrid = boardGrid placingBoardPos
 
 
 boardAsRunningPicture :: Board -> Picture
@@ -64,7 +69,9 @@ boardAsRunningPicture board =
              --, color playerOColor $ oCellsOfBoard board
               color boardGridColor shootingBoardGrid,
               color boardGridColor placingBoardGrid,
-              color boardGridColor $ translateCorrect (100, 100) foo 
+              color boardGridColor $
+              snapPictureToCell foo (9, 2) shootingBoardPos,
+              snapPictureToCell foo (0, 0) placingBoardPos
              ]
 
 translateCorrect :: (Float, Float) -> Picture -> Picture
@@ -72,7 +79,7 @@ translateCorrect (width, height) = translate width $ negate height
 
 
 drawGame :: Game -> Picture
-drawGame game = translate (fromIntegral screenWidth * (-0.5))
-                               (fromIntegral screenHeight * 0.5)
+drawGame game = translateCorrect ((fromIntegral screenWidth * (-0.5)),
+                               (fromIntegral screenHeight * (-0.5)))
                                frame
         where frame = boardAsRunningPicture (gameBoardUser game)
