@@ -2,10 +2,10 @@ module Game where
 
 import Data.Array
 
-data SquareState = Checked | NotChecked                 deriving (Show, Eq)
-data Cell        = Empty SquareState | Ship SquareState deriving (Show, Eq)
-data Player      = User | AI                            deriving (Show, Eq)
-data GameStage   = Placing Player | Shooting Player     deriving (Show, Eq)
+data SquareState = Checked           | NotChecked                 deriving (Show, Eq)
+data Cell        = Empty SquareState | Ship SquareState           deriving (Show, Eq)
+data Player      = User              | AI                         deriving (Show, Eq)
+data GameStage   = Placing Player    | Shooting Player            deriving (Show, Eq)
 
 type Row         = Int
 type Col         = Int

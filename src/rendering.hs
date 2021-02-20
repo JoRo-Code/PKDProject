@@ -11,14 +11,14 @@ type BoardPos = ((Float,Float),(Float,Float))
 screenWidth :: Int
 screenWidth = 1400
 screenHeight :: Int
-screenHeight = 860
+screenHeight = 700
 
 cellWidth width n =  width / fromIntegral n
 
 cellHeight height n =  height / fromIntegral n
 
 shootingBoardPos :: BoardPos
-shootingBoardPos = (((fromIntegral screenWidth)*0.5,0),(fromIntegral screenWidth, fromIntegral screenHeight))
+shootingBoardPos = ((fromIntegral screenWidth*0.5,0),(fromIntegral screenWidth, fromIntegral screenHeight))
 
 {-
     ( ((fromIntegral screenWidth)*0.5,                             0),
@@ -28,33 +28,24 @@ shootingBoardPos = (((fromIntegral screenWidth)*0.5,0),(fromIntegral screenWidth
 boardWidth ((x1,y1),(x2,y2)) = x2-x1
 boardHeight ((x1,y1),(x2,y2)) = y2-y1
 
-
-
-shootingBoardWidth :: Float
-shootingBoardWidth = boardWidth shootingBoardPos
-
-shootingBoardHeight :: Float
-shootingBoardHeight = boardHeight shootingBoardPos
-
-
-shootingBoardCellWidth = cellWidth shootingBoardWidth 10 
-shootingBoardCellHeight = cellHeight shootingBoardHeight 10 
-
-
 --boardGrid :: Picture
-boardGrid cellWidth cellHeight boardPos@((x1,y1),(x2,y2)) =
+boardGrid n boardPos@((x1,y1),(x2,y2)) =
     pictures
-    $ concatMap (\i -> [ line [ (x1 + i * cellWidth, 0.0)
-                              , (x1 + i * cellWidth,  boardHeight boardPos)
+    $ concatMap (\i -> [ line [ (x1 + i * cellW, 0.0)
+                              , (x1 + i * cellW,  boardH)
                               ]
-                       , line [ (x1 + 0.0,                      i * cellHeight)
-                              , (x1 + boardWidth boardPos, i * cellHeight)
+                       , line [ (x1 + 0.0,                      i * cellH)
+                              , (x1 + boardW, i * cellH)
                               ]
                        ])
       [0.0 .. fromIntegral n]
+      where cellW = cellWidth (boardWidth boardPos) n
+            cellH = cellHeight (boardHeight boardPos) n
+            boardH = boardHeight boardPos
+            boardW = boardWidth boardPos
 
 
-shootingBoardGrid = boardGrid shootingBoardCellWidth shootingBoardCellHeight shootingBoardPos
+shootingBoardGrid = boardGrid 3 shootingBoardPos
 
 boardAsRunningPicture :: Board -> Picture
 boardAsRunningPicture board =
