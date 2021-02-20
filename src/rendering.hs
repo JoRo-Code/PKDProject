@@ -20,6 +20,9 @@ cellHeight height n =  height / fromIntegral n
 shootingBoardPos :: BoardPos
 shootingBoardPos = ((fromIntegral screenWidth*0.5,0),(fromIntegral screenWidth, fromIntegral screenHeight))
 
+placingBoardPos :: BoardPos
+placingBoardPos = ((0,0),(fromIntegral screenWidth*0.5, fromIntegral screenHeight))
+
 {-
     ( ((fromIntegral screenWidth)*0.5,                             0),
                      (fromIntegral screenWidth,         fromIntegral screenHeight) )
@@ -46,12 +49,14 @@ boardGrid n boardPos@((x1,y1),(x2,y2)) =
 
 
 shootingBoardGrid = boardGrid 3 shootingBoardPos
+placingBoardGrid = boardGrid 3 placingBoardPos
 
 boardAsRunningPicture :: Board -> Picture
 boardAsRunningPicture board =
     pictures [ --color playerXColor $ xCellsOfBoard board
              --, color playerOColor $ oCellsOfBoard board
-              color boardGridColor $ shootingBoardGrid 
+              color boardGridColor $ shootingBoardGrid,
+              color boardGridColor $ placingBoardGrid  
              ]
              
 drawGame :: Game -> Picture
