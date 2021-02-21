@@ -16,6 +16,12 @@ type Board       = Array (Col, Row) Cell
 type BoardSize   = Int
 type ShipSize    = Int
 
+{- cellCoord: starting coord of ship,
+  Direction: continuing right or down,
+  ShipSize: length of the ship
+-}
+type Ship = (CellCoord, Direction, ShipSize)
+
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
                    gameStage     :: GameStage
