@@ -11,28 +11,32 @@ boardGridColor = makeColorI 255 255 255 255
 
 type BoardPos = (ScreenCoord, ScreenCoord)
 
+shipColor :: Color
+shipColor = greyN 0.5
+hitColor :: Color
+hitColor = red
+missColor :: Color
+missColor = white
+
+
 screenWidth :: Int
-screenWidth = 1400
+screenWidth = 1500
 screenHeight :: Int
 screenHeight = 700
-
-screenBorder :: Float
-screenBorder = 0
 
 -- filling between both boards
 screenDivider :: Float
 screenDivider = 100
 
-
 cellWidth width =  width / fromIntegral n
 
 cellHeight height =  height / fromIntegral n
 
-shootingBoardPos :: BoardPos
-shootingBoardPos = ((fromIntegral screenWidth*0.5 + screenDivider*0.5 ,0+screenBorder),(fromIntegral screenWidth-screenBorder, fromIntegral screenHeight-screenBorder))
+boardAIPos :: BoardPos
+boardAIPos = ((fromIntegral screenWidth*0.5 + screenDivider*0.5 ,0),(fromIntegral screenWidth, fromIntegral screenHeight))
 
-placingBoardPos :: BoardPos
-placingBoardPos = ((0+screenBorder,0+screenBorder),(fromIntegral screenWidth*0.5-screenDivider*0.5, fromIntegral screenHeight-screenBorder))
+boardUserPos :: BoardPos
+boardUserPos = ((0,0),(fromIntegral screenWidth*0.5-screenDivider*0.5, fromIntegral screenHeight))
 
 
 boardWidth ((x1,y1),(x2,y2)) = x2-x1
@@ -40,28 +44,30 @@ boardHeight ((x1,y1),(x2,y2)) = y2-y1
 
 {- puts a picture to a specific cell's screenCoordinates -} 
 snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (column, row) = translate x y picture
-    where x = x1 + fromIntegral row * cellH + cellH / 2
-          y = y1 + fromIntegral column * cellW + cellW / 2
+    where x = x1 + fromIntegral row * cellW + cellW / 2
+          y = y1 + fromIntegral column * cellH + cellH / 2
           cellW = cellWidth (boardWidth boardPos)
           cellH = cellHeight (boardHeight boardPos)
  
 
 
-
-
-foo :: Picture
-foo  = pictures [ rotate 45.0 $ rectangleSolid 50 10.0
-                 , rotate (-45.0) $ rectangleSolid 50 10.0
+crossPicture :: Picture
+crossPicture  = pictures [ rotate 45.0 $ rectangleSolid (0.7 * cellW) (0.15 * cellW)
+                 , rotate (-45.0) $ rectangleSolid (0.7 * cellW) (0.15 * cellW)
                  ]
+                 where cellW = cellWidth (boardWidth boardUserPos)
+
+shipPicture :: Picture
+shipPicture = pictures [ rectangleSolid cellW cellH]
+                        where cellW = cellWidth (boardWidth boardUserPos)
+                              cellH = cellHeight (boardHeight boardUserPos)
+ 
 
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
 cellsToPicture board pos c pic =  pictures
                             $ map (snapPictureToCell pic pos . fst)
                             $ filter (\(_, e) -> e == c)
                             $ assocs board
-
-checked board pos = cellsToPicture board pos (Empty Checked) foo
-
 
 --boardGrid :: Picture
 boardGrid boardPos@((x1,y1),(x2,y2)) =
@@ -80,22 +86,26 @@ boardGrid boardPos@((x1,y1),(x2,y2)) =
             boardW = boardWidth boardPos
 
 
-shootingBoardGrid = boardGrid shootingBoardPos
-placingBoardGrid = boardGrid placingBoardPos
+boardAIGrid = boardGrid boardAIPos
+boardUserGrid = boardGrid boardUserPos
 
 
+miss board pos = cellsToPicture board pos (Empty Checked) crossPicture
+hit board pos = cellsToPicture board pos (Ship Checked) crossPicture
+
+ship board pos = cellsToPicture board pos (Ship NotChecked) shipPicture
 
 boardAsRunningPicture :: Board -> Board -> Picture
-boardAsRunningPicture userBoard aiBoard =
-    pictures [ --color playerXColor $ xCellsOfBoard board
-             --, color playerOColor $ oCellsOfBoard board
-              color boardGridColor shootingBoardGrid,
-              color boardGridColor placingBoardGrid,
+boardAsRunningPicture userBoard boardAI =
+    pictures [color boardGridColor boardAIGrid,
+              color boardGridColor boardUserGrid,
               color boardGridColor $
-              color boardGridColor $ snapPictureToCell foo shootingBoardPos (9, 2),
-              color cyan $ snapPictureToCell foo placingBoardPos (0, 0),
-              color green $ checked userBoard shootingBoardPos,
-              color blue $ checked aiBoard placingBoardPos
+              --color boardGridColor $ snapPictureToCell crossPicture boardAIPos (9, 2),
+              color missColor $ miss userBoard boardUserPos,
+              color missColor $ miss boardAI boardAIPos,
+              color shipColor $ ship userBoard boardUserPos,
+              color hitColor  $ hit userBoard boardUserPos,
+              color hitColor  $ hit boardAI boardAIPos
              ]
 
 drawGame :: Game -> Picture

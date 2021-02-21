@@ -53,20 +53,25 @@ isChecked b coord = s == Checked
         where s = getState b coord
 
 playerShoot :: Game -> CellCoord -> Game
-playerShoot game coord | validCoordinates coord -- && not isChecked
-                        = game {gameBoardUser = checkCell (gameBoardUser game) coord, gameStage = 
+playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI game) coord)
+                        = game {gameBoardAI = checkCell (gameBoardAI game) coord, gameStage = 
                             if gameStage game == Shooting User then Shooting AI else Shooting User}
                        | otherwise = game
 
+---------------------------- Placing ship ----------------------------
 playerPlace = undefined
+
+
+
+---------------------------- Placing ship ----------------------------
 
 mousePosToCoordinates :: ScreenCoord -> CellCoord
 mousePosToCoordinates (x, y) = (floor x, floor y)
 
 mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
 mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) = let (xCoord, yCoord) = (floor ((y - y1 + boardHeight boardPos * 0.5) / cellHeight (boardHeight boardPos)),
-                                                                        floor ((x - x1 + boardWidth boardPos) / cellWidth (boardWidth boardPos)))
-                                                                       in trace (show (xCoord, yCoord)) $ (xCoord, yCoord)
+                                                                        floor ((x - x1 + boardWidth boardPos + screenDivider * 0.5) / cellWidth (boardWidth boardPos)))
+                                                                       in trace (show (xCoord, yCoord) ++ " Mouse coords: " ++ show (x, y)) $ (xCoord, yCoord)
 
 mouseToBoard :: ScreenCoord -> BoardPos
 mouseToBoard (x, y) = undefined
@@ -74,10 +79,10 @@ mouseToBoard (x, y) = undefined
 eventHandler :: Event -> Game -> Game
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game = 
     case gameStage game of
-        Shooting User -> playerShoot game $ mouseToCell mousePos shootingBoardPos -- should change gamestage to shooting AI
-        Placing User -> playerShoot game $ mouseToCell mousePos placingBoardPos -- change to a function that places ships instead
-        Shooting AI -> playerShoot game $ mouseToCell mousePos shootingBoardPos -- calls AI shoot function and goes back to shooting user state, unless AI wins
+        Shooting User -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
+        Placing User -> playerShoot game $ mouseToCell mousePos boardUserPos -- change to a function that places ships instead
+        Shooting AI -> playerShoot game $ mouseToCell mousePos boardAIPos -- calls AI shoot function and goes back to shooting user state, unless AI wins
         Placing AI -> undefined -- calls AI place function, and goes to shooting user state and start the game
     --playerTurn game $ mousePosAsCellCoord mousePos
-    -- changing to placingBoardPos will let us place in the first grid
+    -- changing to boardUserPos will let us place in the first grid
 eventHandler _ game = game 
