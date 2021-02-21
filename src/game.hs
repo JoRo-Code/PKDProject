@@ -16,21 +16,27 @@ type Board       = Array (Col, Row) Cell
 type BoardSize   = Int
 type ShipSize    = Int
 
+{- cellCoord: starting coord of ship,
+  Direction: continuing right or down,
+  ShipSize: length of the ship
+-}
+type Ship = (CellCoord, Direction, ShipSize)
+
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
                    gameStage     :: GameStage
                  } deriving (Show, Eq)
 
 n :: BoardSize
-n = 10
+n = 15
 
 -- Create a new board, a 2d array, where all cells are empty notchecked initially.                                                         
 initBoard :: BoardSize -> Board        
-initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
+initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Ship NotChecked)
              where boardIndex = ((0, 0), (s - 1, s - 1)) 
 
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard n,
                   gameBoardAI   = initBoard n,
-                  gameStage     = Placing User
+                  gameStage     = Shooting User
                 }
