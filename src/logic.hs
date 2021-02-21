@@ -30,6 +30,8 @@ validCoordinates  = inRange boardIndex
 getCell :: Board -> CellCoord -> Cell
 getCell b c = b ! c
 
+
+
 -- PRE: coordinates are in range, cell is NotChecked
 -- Changes the state of a cell to checked
 checkCell :: Board -> CellCoord -> Board
@@ -38,8 +40,22 @@ checkCell b (c, r) = case getCell b (c, r) of
                       Ship NotChecked  -> b // [((c, r), Ship Checked)]
                       _ -> b
 
+-- PRE: coordinates are in range
+-- returns the state of the cell at coordinates
+getState :: Board -> CellCoord -> SquareState
+getState b c =  case getCell b c of
+                     Empty s -> s
+                     Ship s -> s
+
+-- returns True if a cell is Checked, else False
+isChecked :: Board -> CellCoord -> Bool
+isChecked b coord = s == Checked
+        where s = getState b coord
+
 playerShoot :: Game -> CellCoord -> Game
-playerShoot game coord | validCoordinates coord = game {gameBoardUser = checkCell (gameBoardUser game) coord, gameStage = if gameStage game == Placing User then Shooting User else Placing User}
+playerShoot game coord | validCoordinates coord -- && not isChecked
+                        = game {gameBoardUser = checkCell (gameBoardUser game) coord, gameStage = 
+                            if gameStage game == Shooting User then Shooting AI else Shooting User}
                        | otherwise = game
 
 playerPlace = undefined
@@ -60,7 +76,7 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
     case gameStage game of
         Shooting User -> playerShoot game $ mouseToCell mousePos shootingBoardPos -- should change gamestage to shooting AI
         Placing User -> playerShoot game $ mouseToCell mousePos placingBoardPos -- change to a function that places ships instead
-        Shooting AI -> undefined -- calls AI shoot function and goes back to shooting user state, unless AI wins
+        Shooting AI -> playerShoot game $ mouseToCell mousePos shootingBoardPos -- calls AI shoot function and goes back to shooting user state, unless AI wins
         Placing AI -> undefined -- calls AI place function, and goes to shooting user state and start the game
     --playerTurn game $ mousePosAsCellCoord mousePos
     -- changing to placingBoardPos will let us place in the first grid
