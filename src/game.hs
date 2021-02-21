@@ -22,7 +22,7 @@ data Game = Game { gameBoardUser :: Board ,
                  } deriving (Show, Eq)
 
 n :: BoardSize
-n = 10
+n = 4
 
 -- Create a new board, a 2d array, where all cells are empty notchecked initially.                                                         
 initBoard :: BoardSize -> Board        
@@ -32,5 +32,5 @@ initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotCheck
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard n,
                   gameBoardAI   = initBoard n,
-                  gameStage     = Placing User
+                  gameStage     = Shooting User
                 }
