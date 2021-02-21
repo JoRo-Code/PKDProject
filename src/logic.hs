@@ -48,9 +48,9 @@ mousePosToCoordinates :: ScreenCoord -> CellCoord
 mousePosToCoordinates (x, y) = (floor x, floor y)
 
 mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
-mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) = let (kek1, kek2) = (5 + floor ((y - y1) / cellHeight (boardHeight boardPos)),
-                                                                    10 + floor ((x - x1) / cellWidth (boardWidth boardPos)))
-                                                                    in trace (show (kek1, kek2)) $ (kek1, kek2)
+mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) = let (xCoord, yCoord) = (floor ((y - y1 + boardHeight boardPos * 0.5) / cellHeight (boardHeight boardPos)),
+                                                                        floor ((x - x1 + boardWidth boardPos) / cellWidth (boardWidth boardPos)))
+                                                                       in trace (show (xCoord, yCoord)) $ (xCoord, yCoord)
 
 mouseToBoard :: ScreenCoord -> BoardPos
 mouseToBoard (x, y) = undefined
