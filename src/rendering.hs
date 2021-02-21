@@ -31,9 +31,9 @@ placingBoardPos = ((0,0),(fromIntegral screenWidth*0.5, fromIntegral screenHeigh
 boardWidth ((x1,y1),(x2,y2)) = x2-x1
 boardHeight ((x1,y1),(x2,y2)) = y2-y1
 
-snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (row, column) = translate x y picture
-    where x = x1 + fromIntegral column * cellW + cellW / 2
-          y = y1 + fromIntegral row * cellH + cellH / 2
+snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (column, row) = translate x y picture
+    where x = x1 + fromIntegral row * cellH + cellH / 2
+          y = y1 + fromIntegral column * cellW + cellW / 2
           cellW = cellWidth (boardWidth boardPos)
           cellH = cellHeight (boardHeight boardPos)
  
@@ -80,8 +80,9 @@ boardAsRunningPicture board =
               color boardGridColor placingBoardGrid,
               color boardGridColor $
               color boardGridColor $ snapPictureToCell foo shootingBoardPos (9, 2),
-              color green $ snapPictureToCell foo placingBoardPos (0, 0),
-              color green $ checked board shootingBoardPos
+              color cyan $ snapPictureToCell foo placingBoardPos (0, 0),
+              color green $ checked board shootingBoardPos,
+              color blue $ checked board placingBoardPos
              ]
 
 drawGame :: Game -> Picture
