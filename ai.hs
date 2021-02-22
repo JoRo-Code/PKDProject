@@ -2,55 +2,20 @@
 
 module AI where
 
+
+
+
 ------------------- Imports -------------------
 import Data.Array
 import System.IO
+
 --import Data.Stack
 ------------------- Imports -------------------
 
-data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)     
-data SquareState = Checked | NotChecked deriving (Show, Eq)         
 
-type Board = Array (Col, Row) Cell                  
-type Row = Int                                           
-type Col = Int                                           
-type Coordinates = (Col,Row)
+type ShootList = [(CellCoord,Cell)]
+type Stack = [(CellCoord,Cell)]
 
-type BoardSize = Int
-
-type ShootList = [(Coordinates,Cell)]
-type Stack = [(Coordinates,Cell)]
-
--- Create a new board, a 2d array, where all cells are empty notchecked initially.                                                         
-initBoard :: BoardSize -> Board        
-initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
-             where boardIndex = ((0, 0), (s - 1, s - 1))  
-
--- PRE: coordinates are in range, cell is NotChecked
--- Changes the state of a cell to checked
-checkCell :: Board -> Coordinates -> Board
-checkCell b (c, r) = case getCell b (c, r) of
-                      Empty NotChecked -> b // [((c,r), Empty Checked)]   
-                      Ship NotChecked  -> b // [((c,r), Ship Checked)]
-                      _                -> b
-
--- Give size of board, and coordinates
--- returns true if coordinates are in boardIndex, else false
-validCoordinates :: BoardSize -> Coordinates -> Bool
-validCoordinates s = inRange boardIndex
-                    where boardIndex = ((0, 0), (s - 1, s - 1))  
-
--- PRE: coordinates are in range
--- returns the cell at coordinates
-getCell :: Board -> Coordinates -> Cell
-getCell b c = b ! c
-
--- PRE: coordinates are in range
--- returns the state of the cell at coordinates
-getState :: Board -> Coordinates -> SquareState
-getState b c =  case getCell b c of
-                     Empty s -> s
-                     Ship s -> s
 
 -- returns boardsize from given board
 getBoardSize :: Board -> BoardSize
@@ -62,7 +27,7 @@ getBoardSize b =  round . sqrt . fromIntegral $ length b
 -- Creates a ShootList from a Col in a board
 aiShootListCol :: Board -> Col -> ShootList
 aiShootListCol board r = aiShootListColAux board (r,0)
-  where aiShootListColAux :: Board -> Coordinates -> ShootList
+  where aiShootListColAux :: Board -> CellCoord -> ShootList
         aiShootListColAux board (c,r) | r == getBoardSize board = []
                                       | otherwise = ((c,r),getCell board (c,r)) : aiShootListColAux board (c,r+1)
 
@@ -83,15 +48,15 @@ aiPrio l = aiPrioAux l []
           | otherwise       = if even $ getRow x then aiPrioAux xs ([x] ++ acc) else aiPrioAux xs (acc ++ [x])
 
 -- Returns column of element in a ShootList
-getCol :: (Coordinates,Cell) -> Col
+getCol :: (CellCoord,Cell) -> Col
 getCol ((a,_),_) = a
 
 -- Returns row of element in a ShootList
-getRow :: (Coordinates,Cell) -> Row
+getRow :: (CellCoord,Cell) -> Row
 getRow ((_,b),_) = b
 
 -- Returns True if a Cell contains an unchecked Ship, otherwise False
-aiHunt :: (Coordinates,Cell) -> Bool
+aiHunt :: (CellCoord,Cell) -> Bool
 aiHunt ((_,_),Ship NotChecked) = True
 aiHunt ((_,_),_) = False
 
@@ -111,10 +76,10 @@ filterShootList :: Board -> ShootList
 filterShootList b = removeChecked (aiPrio (aiShootList b))
 
 -- Removes already checked cells from Stack or ShootList
-removeChecked :: [(Coordinates,Cell)] -> [(Coordinates,Cell)]
+removeChecked :: [(CellCoord,Cell)] -> [(CellCoord,Cell)]
 removeChecked [] = []
 removeChecked (x:xs) = removeCheckedAux x ++ removeChecked xs
-  where removeCheckedAux :: (Coordinates,Cell) -> [(Coordinates,Cell)]
+  where removeCheckedAux :: (CellCoord,Cell) -> [(CellCoord,Cell)]
         removeCheckedAux ((_,_),Ship Checked) = []
         removeCheckedAux ((_,_),Empty Checked) = []
         removeCheckedAux x = [x]
@@ -125,7 +90,7 @@ updateStack [] (x:xs) = [x]
 updateStack s _ = s
 
 -- Returns a Stack of the cohesive cells to a cell in a row
-cohesiveCellsRow :: Board -> (Coordinates,Cell) -> Stack
+cohesiveCellsRow :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCellsRow b ((c,r),x) 
   | validCoordinates (getBoardSize b) (c,r-1) && validCoordinates (getBoardSize b) (c,r+1) = [((c,r-1),getCell b (c,r-1)), ((c,r+1),getCell b (c,r+1))]
   | validCoordinates (getBoardSize b) (c,r-1) = [((c,r-1),getCell b (c,r-1))]
@@ -133,12 +98,12 @@ cohesiveCellsRow b ((c,r),x)
   | otherwise = []
 
 -- Returns a Stack of all cohesive cells to a cell
-cohesiveCells :: Board -> (Coordinates,Cell) -> Stack
+cohesiveCells :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCells b ((c,r),x) 
   | validCoordinates (getBoardSize b) (c-1,r) && validCoordinates (getBoardSize b) (c+1,r) = [((c-1,r),getCell b (c-1,r)), ((c+1,r),getCell b (c+1,r))] ++ cohesiveCellsRow b ((c,r),x)
   | validCoordinates (getBoardSize b) (c-1,r) = [((c-1,r),getCell b (c-1,r))] ++ cohesiveCellsRow b ((c,r),x)
   | validCoordinates (getBoardSize b) (c+1,r) = [((c+1,r),getCell b (c+1,r))] ++ cohesiveCellsRow b ((c,r),x)
   | otherwise = cohesiveCellsRow b ((c,r),x)
 
-tester :: (Array (Int, Int) Cell, [a])
+--tester :: (Array (Int, Int) Cell, [a])
 tester = (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Ship NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Ship NotChecked),((2,1),Ship NotChecked),((2,2),Empty NotChecked)],[])

@@ -111,8 +111,8 @@ boardAsRunningPicture userBoard boardAI ships =
               color (miss cellColor) $ missToPicture boardAI boardAIPos,
               color (ship cellColor) $ shipsToPicture userBoard boardUserPos,
               color (hit cellColor)  $ hitsToPicture userBoard boardUserPos,
-              color (hit cellColor)  $ hitsToPicture boardAI boardAIPos,
-              color (ship cellColor) $ placingShipPicture coord d s
+              color (hit cellColor)  $ hitsToPicture boardAI boardAIPos--,
+              --color (ship cellColor) $ placingShipPicture coord d s
              ]
              where (coord, d, s) = ships
 
