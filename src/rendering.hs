@@ -8,11 +8,14 @@ boardGridColor = makeColorI 255 255 255 255
 
 type BoardPos = (ScreenCoord, ScreenCoord)
 
-data GameColor = GameColor {miss :: Color, 
+data GameColor = CellColor {miss :: Color, 
                             hit  :: Color, 
-                            ship :: Color} deriving (Show, Eq)
-gameColor :: GameColor
-gameColor = GameColor {miss = white, hit = red, ship = greyN 0.5}
+                            ship :: Color}
+                 | BoardColor {grid :: Color}
+
+cellColor :: GameColor
+cellColor = CellColor {miss = white, hit = red, ship = greyN 0.5}
+
 
 screenWidth :: Float
 screenWidth = 1500
@@ -50,8 +53,8 @@ snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y pict
           
 
 crossPicture :: Picture
-crossPicture  = pictures [ rotate 45.0 $ rectangleSolid length thickness
-                 , rotate (-45.0) $ rectangleSolid length thickness
+crossPicture  = pictures [ rotate 45 $ rectangleSolid length thickness
+                 , rotate (-45) $ rectangleSolid length thickness
                  ]
                  where length = 0.7 * min cellWidth cellHeight
                        thickness = 0.15 * min cellWidth cellHeight
@@ -59,6 +62,12 @@ crossPicture  = pictures [ rotate 45.0 $ rectangleSolid length thickness
 shipPicture :: Picture
 shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
                        
+placingShipPicture :: CellCoord -> Direction -> ShipSize -> Picture
+placingShipPicture (c, r) Horizontal s =  translate (0.5 * cellWidth * fromIntegral s + fromIntegral c * cellWidth) (0.5*cellHeight + fromIntegral r * cellHeight) 
+                                          (pictures [ rectangleSolid (cellWidth * fromIntegral s) cellHeight])
+placingShipPicture (c, r) Vertical s   =  translate (0.5 * cellWidth * fromIntegral s + fromIntegral c * cellWidth - (0.5 * fromIntegral s * cellWidth) + 0.5 * cellWidth) (0.5*cellHeight + fromIntegral r * cellHeight - (0.5 * fromIntegral s * cellWidth) + 0.5 * cellHeight) 
+                                          (pictures [ rotate 90 $ rectangleSolid (cellWidth * fromIntegral s) cellHeight])                         
+
 
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
 cellsToPicture board pos c pic =  pictures
@@ -94,20 +103,22 @@ hitsToPicture board pos = cellsToPicture board pos (Ship Checked) crossPicture
 shipsToPicture :: Board -> BoardPos -> Picture
 shipsToPicture board pos = cellsToPicture board pos (Ship NotChecked) shipPicture
 
-boardAsRunningPicture :: Board -> Board -> Picture
-boardAsRunningPicture userBoard boardAI =
+boardAsRunningPicture :: Board -> Board -> Ships -> Picture
+boardAsRunningPicture userBoard boardAI ships =
     pictures [color boardGridColor boardAIGrid,
               color boardGridColor boardUserGrid,
               color boardGridColor $
-              color (miss gameColor) $ missToPicture userBoard boardUserPos,
-              color (miss gameColor) $ missToPicture boardAI boardAIPos,
-              color (ship gameColor) $ shipsToPicture userBoard boardUserPos,
-              color (hit gameColor)  $ hitsToPicture userBoard boardUserPos,
-              color (hit gameColor)  $ hitsToPicture boardAI boardAIPos
+              color (miss cellColor) $ missToPicture userBoard boardUserPos,
+              color (miss cellColor) $ missToPicture boardAI boardAIPos,
+              color (ship cellColor) $ shipsToPicture userBoard boardUserPos,
+              color (hit cellColor)  $ hitsToPicture userBoard boardUserPos,
+              color (hit cellColor)  $ hitsToPicture boardAI boardAIPos,
+              color (ship cellColor) $ placingShipPicture coord d s
              ]
+             where (coord, d, s) = ships
 
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))
                           (screenHeight * (-0.5))
                            frame
-        where frame = boardAsRunningPicture (gameBoardUser game) (gameBoardAI game)
+        where frame = boardAsRunningPicture (gameBoardUser game) (gameBoardAI game) (shipsUser game)

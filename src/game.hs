@@ -20,11 +20,12 @@ type ShipSize    = Int
   Direction: continuing right or down,
   ShipSize: length of the ship
 -}
-type Ship = (CellCoord, Direction, ShipSize)
+type Ships = (CellCoord, Direction, ShipSize)
 
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
-                   gameStage     :: GameStage
+                   gameStage     :: GameStage,
+                   shipsUser     :: Ships
                  } deriving (Show, Eq)
 
 n :: BoardSize
@@ -35,8 +36,13 @@ initBoard :: BoardSize -> Board
 initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
              where boardIndex = ((0, 0), (s - 1, s - 1)) 
 
+
+initShip :: Ships
+initShip = ((2, 2), Horizontal, 7)
+
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard n,
                   gameBoardAI   = initBoard n,
-                  gameStage     = Placing User
+                  gameStage     = Placing User,
+                  shipsUser     = initShip
                 }
