@@ -39,7 +39,7 @@ First session working on battleships.
     The above mentioned project gives great inspiration for a 2D-array game with gloss
 
 Thursday 2021-02-18 - 1 hour
-- added graphics module
+- added rendering, logic, AI and main modules
 - improved readability of a few functions in game module
 - Discussed how to make an ai with random and a stack
 
@@ -47,3 +47,8 @@ Thursday 2021-02-18 - 1 hour
     https://mmhaskell.com/blog/2019/3/25/making-a-glossy-game-part-1
     https://hackage.haskell.org/package/gloss-examples-1.13.0.3/src/    
 
+
+Monday 2021-02-22 - 2 hours
+ - implemented AI to logic instead of its own module
+ - made it possible to play against AI
+ - tested playing vs. AI and found a bug
