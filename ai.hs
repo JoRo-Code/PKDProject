@@ -5,6 +5,7 @@ module AI where
 ------------------- Imports -------------------
 import Data.Array
 import System.IO
+--import Data.Stack
 ------------------- Imports -------------------
 
 data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)     
@@ -96,25 +97,32 @@ aiHunt ((_,_),_) = False
 
 -- Checks first cell in stack
 aiShoot :: (Board,Stack) -> (Board,Stack)
-aiShoot (b,s) = aiShootAux (b,s) (filterShootList (aiPrio (aiShootList b)) s)
+aiShoot (b,s) = aiShootAux (b,removeChecked $ updateStack s (filterShootList b)) (filterShootList b)
 
 -- Checks first cell in stack
 --PRE: ShootList is not empty
 aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
-aiShootAux (b,[]) l = aiShootAux (b,[head l]) (tail l) -- Adds the head of ShootList to Stack if Stack is empty
 aiShootAux (b,s) l 
   | aiHunt (head s) = (checkCell b (fst $ head s),cohesiveCells b (head s) ++ tail s)
   | otherwise = (checkCell b (fst $ head s),tail s)
 
+-- Creates a ShootList of all cells with state NotChecked
+filterShootList :: Board -> ShootList
+filterShootList b = removeChecked (aiPrio (aiShootList b))
 
--- Removes all checked cells and cells that are in Stack from ShootList
-filterShootList :: ShootList -> Stack -> ShootList
-filterShootList [] _ = []
-filterShootList (x:xs) stack = filterShootListAux x stack ++ filterShootList xs stack
-  where filterShootListAux ((_,_),Empty Checked) _ = []
-        filterShootListAux ((_,_),Ship Checked) _ = []
-        filterShootListAux ((c,r),cell) stack | notElem ((c,r),cell) stack = [((c,r),cell)]
-                                              | otherwise = []
+-- Removes already checked cells from Stack or ShootList
+removeChecked :: [(Coordinates,Cell)] -> [(Coordinates,Cell)]
+removeChecked [] = []
+removeChecked (x:xs) = removeCheckedAux x ++ removeChecked xs
+  where removeCheckedAux :: (Coordinates,Cell) -> [(Coordinates,Cell)]
+        removeCheckedAux ((_,_),Ship Checked) = []
+        removeCheckedAux ((_,_),Empty Checked) = []
+        removeCheckedAux x = [x]
+
+-- Updates Stack with the head from ShootList if Stack is empty
+updateStack :: Stack -> ShootList -> Stack
+updateStack [] (x:xs) = [x]
+updateStack s _ = s
 
 -- Returns a Stack of the cohesive cells to a cell in a row
 cohesiveCellsRow :: Board -> (Coordinates,Cell) -> Stack
