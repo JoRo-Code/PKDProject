@@ -7,9 +7,8 @@ import Game         -- initialGame
 import Logic        -- eventHandler
 import Rendering    -- drawGame
 
-
 window :: Display
-window = InWindow "BattleShips" (screenWidth, screenHeight) (100, 100)
+window = InWindow "BattleShips" (floor screenWidth, floor screenHeight) (100, 100)
 
 backgroundColor :: Color
 backgroundColor = makeColor 0 0 0 0

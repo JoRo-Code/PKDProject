@@ -30,8 +30,6 @@ validCoordinates  = inRange boardIndex
 getCell :: Board -> CellCoord -> Cell
 getCell b c = b ! c
 
-
-
 -- PRE: coordinates are in range, cell is NotChecked
 -- Changes the state of a cell to checked
 checkCell :: Board -> CellCoord -> Board
@@ -55,12 +53,36 @@ isChecked b coord = s == Checked
 playerShoot :: Game -> CellCoord -> Game
 playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI game) coord)
                         = game {gameBoardAI = checkCell (gameBoardAI game) coord, gameStage = 
-                            if gameStage game == Shooting User then Shooting AI else Shooting User}
+                        if gameStage game == Shooting User then Shooting AI else Shooting User}
                        | otherwise = game
 
 ---------------------------- Placing ship ----------------------------
-playerPlace = undefined
+placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
+placeShip game _ 0 _= game
+placeShip game coord s d | validShipPlacement (gameBoardUser game) coord s d = game {gameBoardUser = placeShipAux (gameBoardUser game) coord s d}
+                         | otherwise = game
 
+placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
+placeShipAux b _ 0 _= b
+placeShipAux b (c, r) s d = placeShipAux (b // [((c, r), Ship NotChecked)]) (c + colOffset, r + rowOffset) (s - 1) d
+                        where (colOffset, rowOffset) = offset d
+
+validShipPlacement :: Board ->  CellCoord -> ShipSize -> Direction -> Bool
+validShipPlacement b (c, r) s d = validCoordinates (c + colOffset * s - colOffset, r + rowOffset * s - rowOffset) -- (-1) because the ship part on (r, c) is included
+                                && validCoordinates (c, r) 
+                                && noCollision b (c, r) s d
+                                where (colOffset, rowOffset) = offset d
+
+-- cheeck if the ship the user want to place will collide with any existing ships
+noCollision :: Board -> CellCoord -> ShipSize -> Direction -> Bool
+noCollision b _ 0 _ = True
+noCollision b (c, r) s d | b ! (c, r) == Ship NotChecked = False
+                         | otherwise = noCollision b (c + colOffset, r + rowOffset) (s - 1) d
+                           where (colOffset, rowOffset) = offset d
+
+offset :: Direction -> (Col, Row)
+offset Vertical = (1, 0)
+offset Horizontal = (0, 1)
 
 
 ---------------------------- Placing ship ----------------------------
@@ -69,20 +91,24 @@ mousePosToCoordinates :: ScreenCoord -> CellCoord
 mousePosToCoordinates (x, y) = (floor x, floor y)
 
 mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
-mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) = let (xCoord, yCoord) = (floor ((y - y1 + boardHeight boardPos * 0.5) / cellHeight (boardHeight boardPos)),
-                                                                        floor ((x - x1 + boardWidth boardPos + screenDivider * 0.5) / cellWidth (boardWidth boardPos)))
+mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) = let (xCoord, yCoord) = (floor ((y - y1 + boardHeight  * 0.5) / cellHeight ),
+                                                                        floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth))
                                                                        in trace (show (xCoord, yCoord) ++ " Mouse coords: " ++ show (x, y)) $ (xCoord, yCoord)
 
 mouseToBoard :: ScreenCoord -> BoardPos
 mouseToBoard (x, y) = undefined
 
 eventHandler :: Event -> Game -> Game
+eventHandler (EventKey (SpecialKey KeyLeft) Down _ _) game   = undefined
+eventHandler (EventKey (SpecialKey KeyRight) Down _ _) game  = undefined
+eventHandler (EventKey (SpecialKey KeyUp) Down _ _) game     = undefined
+eventHandler (EventKey (SpecialKey KeyDown) Down _ _) game   = undefined
+eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = undefined
+eventHandler (EventKey (Char 'r') Down _ _) game             = undefined
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game = 
     case gameStage game of
-        Shooting User -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
-        Placing User -> playerShoot game $ mouseToCell mousePos boardUserPos -- change to a function that places ships instead
-        Shooting AI -> playerShoot game $ mouseToCell mousePos boardAIPos -- calls AI shoot function and goes back to shooting user state, unless AI wins
-        Placing AI -> undefined -- calls AI place function, and goes to shooting user state and start the game
-    --playerTurn game $ mousePosAsCellCoord mousePos
-    -- changing to boardUserPos will let us place in the first grid
+         Shooting User -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
+         Placing User  -> placeShip game (mouseToCell mousePos boardUserPos) 4 Vertical-- change to a function that places ships instead
+         Shooting AI   -> playerShoot game $ mouseToCell mousePos boardAIPos -- calls AI shoot function and goes back to shooting user state, unless AI wins
+         _ -> game
 eventHandler _ game = game 

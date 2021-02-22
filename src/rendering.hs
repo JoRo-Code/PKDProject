@@ -1,67 +1,64 @@
-{-# LANGUAGE LambdaCase #-} 
 module Rendering where
 
 import Graphics.Gloss
 import Data.Array
 import Game
 
-
-
 boardGridColor = makeColorI 255 255 255 255
 
 type BoardPos = (ScreenCoord, ScreenCoord)
 
-shipColor :: Color
-shipColor = greyN 0.5
-hitColor :: Color
-hitColor = red
-missColor :: Color
-missColor = white
+data GameColor = GameColor {miss :: Color, 
+                            hit  :: Color, 
+                            ship :: Color} deriving (Show, Eq)
+gameColor :: GameColor
+gameColor = GameColor {miss = white, hit = red, ship = greyN 0.5}
 
-
-screenWidth :: Int
+screenWidth :: Float
 screenWidth = 1500
-screenHeight :: Int
+screenHeight :: Float
 screenHeight = 700
 
 -- filling between both boards
 screenDivider :: Float
 screenDivider = 100
 
-cellWidth width =  width / fromIntegral n
+--------------------- Solving cellWidth and cellHeight problem ---------------------
 
-cellHeight height =  height / fromIntegral n
+cellWidth :: Float
+cellWidth  = (screenWidth - screenDivider) * 0.5 / fromIntegral n
+cellHeight :: Float
+cellHeight = screenHeight / fromIntegral n
+boardWidth :: Float
+boardWidth = (screenWidth - screenDivider) / 2
+boardHeight :: Float
+boardHeight = screenHeight
+
+--------------------- Solving cellWidth and cellHeight problem ---------------------
 
 boardAIPos :: BoardPos
-boardAIPos = ((fromIntegral screenWidth*0.5 + screenDivider*0.5 ,0),(fromIntegral screenWidth, fromIntegral screenHeight))
+boardAIPos = ((screenWidth * 0.5 + screenDivider * 0.5 ,0), (screenWidth, screenHeight))
 
 boardUserPos :: BoardPos
-boardUserPos = ((0,0),(fromIntegral screenWidth*0.5-screenDivider*0.5, fromIntegral screenHeight))
-
-
-boardWidth ((x1,y1),(x2,y2)) = x2-x1
-boardHeight ((x1,y1),(x2,y2)) = y2-y1
+boardUserPos = ((0,0), (screenWidth * 0.5 - screenDivider * 0.5, screenHeight))
 
 {- puts a picture to a specific cell's screenCoordinates -} 
-snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (column, row) = translate x y picture
-    where x = x1 + fromIntegral row * cellW + cellW / 2
-          y = y1 + fromIntegral column * cellH + cellH / 2
-          cellW = cellWidth (boardWidth boardPos)
-          cellH = cellHeight (boardHeight boardPos)
- 
-
+snapPictureToCell :: Picture -> BoardPos -> CellCoord -> Picture
+snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y picture
+    where x = x1 + fromIntegral r * cellWidth + cellWidth / 2
+          y = y1 + fromIntegral c * cellHeight + cellHeight / 2
+          
 
 crossPicture :: Picture
-crossPicture  = pictures [ rotate 45.0 $ rectangleSolid (0.7 * cellW) (0.15 * cellW)
-                 , rotate (-45.0) $ rectangleSolid (0.7 * cellW) (0.15 * cellW)
+crossPicture  = pictures [ rotate 45.0 $ rectangleSolid length thickness
+                 , rotate (-45.0) $ rectangleSolid length thickness
                  ]
-                 where cellW = cellWidth (boardWidth boardUserPos)
+                 where length = 0.7 * min cellWidth cellHeight
+                       thickness = 0.15 * min cellWidth cellHeight
 
 shipPicture :: Picture
-shipPicture = pictures [ rectangleSolid cellW cellH]
-                        where cellW = cellWidth (boardWidth boardUserPos)
-                              cellH = cellHeight (boardHeight boardUserPos)
- 
+shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
+                       
 
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
 cellsToPicture board pos c pic =  pictures
@@ -69,47 +66,48 @@ cellsToPicture board pos c pic =  pictures
                             $ filter (\(_, e) -> e == c)
                             $ assocs board
 
---boardGrid :: Picture
+boardGrid :: BoardPos -> Picture
 boardGrid boardPos@((x1,y1),(x2,y2)) =
     pictures
-    $ concatMap (\i -> [ line [ (x1 + i * cellW, 0.0)
-                              , (x1 + i * cellW,  boardH)
+    $ concatMap (\i -> [ line [ (x1 + i * cellWidth, 0.0)
+                              , (x1 + i * cellWidth,  boardHeight)
                               ]
-                       , line [ (x1 + 0.0, i * cellH)
-                              , (x1 + boardW, i * cellH)
+                       , line [ (x1 + 0.0, i * cellHeight)
+                              , (x1 + boardWidth, i * cellHeight)
                               ]
                        ])
       [0.0 .. fromIntegral n]
-      where cellW = cellWidth (boardWidth boardPos)
-            cellH = cellHeight (boardHeight boardPos)
-            boardH = boardHeight boardPos
-            boardW = boardWidth boardPos
 
 
+boardAIGrid :: Picture
 boardAIGrid = boardGrid boardAIPos
+
+boardUserGrid :: Picture
 boardUserGrid = boardGrid boardUserPos
 
+missToPicture :: Board -> BoardPos -> Picture
+missToPicture board pos = cellsToPicture board pos (Empty Checked) crossPicture
 
-miss board pos = cellsToPicture board pos (Empty Checked) crossPicture
-hit board pos = cellsToPicture board pos (Ship Checked) crossPicture
+hitsToPicture :: Board -> BoardPos -> Picture
+hitsToPicture board pos = cellsToPicture board pos (Ship Checked) crossPicture
 
-ship board pos = cellsToPicture board pos (Ship NotChecked) shipPicture
+shipsToPicture :: Board -> BoardPos -> Picture
+shipsToPicture board pos = cellsToPicture board pos (Ship NotChecked) shipPicture
 
 boardAsRunningPicture :: Board -> Board -> Picture
 boardAsRunningPicture userBoard boardAI =
     pictures [color boardGridColor boardAIGrid,
               color boardGridColor boardUserGrid,
               color boardGridColor $
-              --color boardGridColor $ snapPictureToCell crossPicture boardAIPos (9, 2),
-              color missColor $ miss userBoard boardUserPos,
-              color missColor $ miss boardAI boardAIPos,
-              color shipColor $ ship userBoard boardUserPos,
-              color hitColor  $ hit userBoard boardUserPos,
-              color hitColor  $ hit boardAI boardAIPos
+              color (miss gameColor) $ missToPicture userBoard boardUserPos,
+              color (miss gameColor) $ missToPicture boardAI boardAIPos,
+              color (ship gameColor) $ shipsToPicture userBoard boardUserPos,
+              color (hit gameColor)  $ hitsToPicture userBoard boardUserPos,
+              color (hit gameColor)  $ hitsToPicture boardAI boardAIPos
              ]
 
 drawGame :: Game -> Picture
-drawGame game = translate (fromIntegral screenWidth * (-0.5))
-                          (fromIntegral screenHeight * (-0.5))
+drawGame game = translate (screenWidth * (-0.5))
+                          (screenHeight * (-0.5))
                            frame
         where frame = boardAsRunningPicture (gameBoardUser game) (gameBoardAI game)
