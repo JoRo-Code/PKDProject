@@ -61,13 +61,12 @@ crossPicture  = pictures [ rotate 45 $ rectangleSolid length thickness
 
 shipPicture :: Picture
 shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
-                       
+                  
 placingShipPicture :: CellCoord -> Direction -> ShipSize -> Picture
-placingShipPicture (c, r) Horizontal s =  translate (0.5 * cellWidth * fromIntegral s + fromIntegral c * cellWidth) (0.5*cellHeight + fromIntegral r * cellHeight) 
+placingShipPicture (c, r) Horizontal s =  translate (cellWidth * (0.5 * fromIntegral s + fromIntegral c)) (cellHeight * (0.5 + fromIntegral r)) 
                                           (pictures [ rectangleSolid (cellWidth * fromIntegral s) cellHeight])
-placingShipPicture (c, r) Vertical s   =  translate (0.5 * cellWidth * fromIntegral s + fromIntegral c * cellWidth - (0.5 * fromIntegral s * cellWidth) + 0.5 * cellWidth) (0.5*cellHeight + fromIntegral r * cellHeight - (0.5 * fromIntegral s * cellWidth) + 0.5 * cellHeight) 
-                                          (pictures [ rotate 90 $ rectangleSolid (cellWidth * fromIntegral s) cellHeight])                         
-
+placingShipPicture (c, r) Vertical s   =  translate (cellWidth * (fromIntegral c + 0.5)) (cellHeight * (1 + fromIntegral r - 0.5 * fromIntegral s)) 
+                                          (pictures [ rotate 90 $ rectangleSolid (cellWidth * fromIntegral s) cellHeight])                        
 
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
 cellsToPicture board pos c pic =  pictures

@@ -38,7 +38,7 @@ initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotCheck
 
 
 initShip :: Ships
-initShip = ((2, 2), Horizontal, 7)
+initShip = ((4,4), Vertical, 5)
 
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard n,
