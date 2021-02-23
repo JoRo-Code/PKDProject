@@ -10,11 +10,12 @@ type BoardPos = (ScreenCoord, ScreenCoord)
 
 data GameColor = CellColor {miss :: Color, 
                             hit  :: Color, 
-                            ship :: Color}
+                            placedShip :: Color,
+                            movingShip :: Color}
                  | BoardColor {grid :: Color}
 
 cellColor :: GameColor
-cellColor = CellColor {miss = white, hit = red, ship = greyN 0.5}
+cellColor = CellColor {miss = white, hit = red, placedShip = greyN 0.5, movingShip = greyN 0.7}
 
 
 screenWidth :: Float
@@ -48,8 +49,8 @@ boardUserPos = ((0,0), (screenWidth * 0.5 - screenDivider * 0.5, screenHeight))
 {- puts a picture to a specific cell's screenCoordinates -} 
 snapPictureToCell :: Picture -> BoardPos -> CellCoord -> Picture
 snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y picture
-    where x = x1 + fromIntegral r * cellWidth + cellWidth / 2
-          y = y1 + fromIntegral c * cellHeight + cellHeight / 2
+    where x = x1 + fromIntegral c * cellWidth + cellWidth / 2
+          y = y1 + fromIntegral r * cellHeight + cellHeight / 2
           
 
 crossPicture :: Picture
@@ -109,12 +110,12 @@ boardAsRunningPicture userBoard boardAI ships =
               color boardGridColor $
               color (miss cellColor) $ missToPicture userBoard boardUserPos,
               color (miss cellColor) $ missToPicture boardAI boardAIPos,
-              color (ship cellColor) $ shipsToPicture userBoard boardUserPos,
+              color (placedShip cellColor) $ shipsToPicture userBoard boardUserPos,
               color (hit cellColor)  $ hitsToPicture userBoard boardUserPos,
-              color (hit cellColor)  $ hitsToPicture boardAI boardAIPos--,
-              --color (ship cellColor) $ placingShipPicture coord d s
+              color (hit cellColor)  $ hitsToPicture boardAI boardAIPos,
+              color (movingShip cellColor) $ placingShipPicture coord d s
              ]
-             where (coord, d, s) = ships
+             where (coord, d, s) = head ships
 
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))

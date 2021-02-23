@@ -8,24 +8,13 @@ import Rendering
 
 import Debug.Trace
 
-{- 
-computes the cellcoordinates for a specific (x,y) on the screen
--}
---mousePosAsCellCoord :: (Float, Float) -> CellCoordinates
-
-
-{- transforms the game if a player clicks on a cell -}
---playerTurn :: Game -> CellCoordinates -> Game
-
-
-{- 
-handles the inputs of the game.
-specifically what happends if the mouse is pressed
--}
-
 validCoordinates :: CellCoord -> Bool
 validCoordinates  = inRange boardIndex
                     where boardIndex = ((0, 0), (n - 1, n - 1)) 
+
+endCoordinates :: CellCoord -> ShipSize -> Direction -> CellCoord
+endCoordinates (c, r) s Horizontal = (c + s - 1, r)
+endCoordinates (c, r) s Vertical = (c, r - s + 1)
 
 getCell :: Board -> CellCoord -> Cell
 getCell b c = b ! c
@@ -57,78 +46,76 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
                                 gameBoardUser = fst $ aiShoot (gameBoardUser game, stackAI game),
                                 stackAI = snd $ aiShoot (gameBoardUser game, stackAI game)
                                 } 
-
                        | otherwise = game
 
 ---------------------------- Placing ship ----------------------------
 placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
 placeShip game _ 0 _= game
-placeShip game coord s d | validShipPlacement (gameBoardUser game) coord s d = game {gameBoardUser = placeShipAux (gameBoardUser game) coord s d}
+placeShip game coord s d | validShipPlacement (gameBoardUser game) coord s d  = game {gameBoardUser = placeShipAux (gameBoardUser game) coord s d, shipsUser = tail $ shipsUser game}
                          | otherwise = game
 
 placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
 placeShipAux b _ 0 _= b
-placeShipAux b (c, r) s d = placeShipAux (b // [((c, r), Ship NotChecked)]) (c + colOffset, r + rowOffset) (s - 1) d
-                        where (colOffset, rowOffset) = offset d
+placeShipAux b (c, r) s d = placeShipAux (b // [((c, r), Ship NotChecked)]) (offset (c, r) d) (s - 1) d
 
 validShipPlacement :: Board ->  CellCoord -> ShipSize -> Direction -> Bool
-validShipPlacement b (c, r) s d = validCoordinates (c + colOffset * s - colOffset, r + rowOffset * s - rowOffset) -- (-1) because the ship part on (r, c) is included
-                                && validCoordinates (c, r) 
-                                && noCollision b (c, r) s d
-                                where (colOffset, rowOffset) = offset d
+validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d) -- (-1) because the ship part on (r, c) is included
+                                  && validCoordinates (c, r)  
+                                  && noCollision b (c, r) s d
 
 -- cheeck if the ship the user want to place will collide with any existing ships
 noCollision :: Board -> CellCoord -> ShipSize -> Direction -> Bool
 noCollision b _ 0 _ = True
 noCollision b (c, r) s d | b ! (c, r) == Ship NotChecked = False
-                         | otherwise = noCollision b (c + colOffset, r + rowOffset) (s - 1) d
-                           where (colOffset, rowOffset) = offset d
+                         | otherwise = noCollision b (offset (c, r) d) (s - 1) d
+                           
+offset :: CellCoord -> Direction -> (Col, Row)
+offset (c, r) Vertical = (c, r - 1)
+offset (c, r) Horizontal = (c + 1, r)
 
-offset :: Direction -> (Col, Row)
-offset Vertical = (1, 0)
-offset Horizontal = (0, 1)
-
-
----------------------------- Placing ship ----------------------------
-
-mousePosToCoordinates :: ScreenCoord -> CellCoord
-mousePosToCoordinates (x, y) = (floor x, floor y)
+---------------------------- END Placing ship ------------------------
+---------------------------- Moving Ship Picture ---------------------
 
 mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
-mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) = let (xCoord, yCoord) = (floor ((y - y1 + boardHeight  * 0.5) / cellHeight ),
-                                                                        floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth))
-                                                                       in trace (show (xCoord, yCoord) ++ " Mouse coords: " ++ show (x, y)) $ (xCoord, yCoord)
+mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth), floor ((y - y1 + boardHeight  * 0.5) / cellHeight ))
+                                                                       
+moveShip :: Game -> SpecialKey -> Game
+moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
+                       && validCoordinates newCoord  = game {shipsUser = (newCoord, d, s) : tail (shipsUser game)}
+                     | otherwise = game
+                      where ((c, r), d, s) = head $ shipsUser game
+                            newCoord =  case keyDir of
+                                        KeyLeft  -> (c - 1, r)
+                                        KeyRight -> (c + 1, r)  
+                                        KeyUp    -> (c, r + 1)
+                                        KeyDown  -> (c, r - 1)
 
-mouseToBoard :: ScreenCoord -> BoardPos
-mouseToBoard (x, y) = undefined
+rotateShip :: Game -> Game
+rotateShip game | validCoordinates $ endCoordinates coord s newDirection =  game {shipsUser = (coord, newDirection, s) : tail (shipsUser game)}
+                | otherwise = game
+                  where (coord, d, s) = head $ shipsUser game
+                        newDirection = case d of
+                                      Horizontal -> Vertical
+                                      Vertical   -> Horizontal
+
+confirmShip :: Game -> Game
+confirmShip game | validShipPlacement (gameBoardUser game) coord s d = placeShip game coord s d
+                 | otherwise = game
+                   where (coord, d, s) = head $ shipsUser game
+
+---------------------------- END Moving Ship Picture -----------------
+
 
 eventHandler :: Event -> Game -> Game
-eventHandler (EventKey (SpecialKey KeyLeft) Down _ _) game   = undefined
-eventHandler (EventKey (SpecialKey KeyRight) Down _ _) game  = undefined
-eventHandler (EventKey (SpecialKey KeyUp) Down _ _) game     = undefined
-eventHandler (EventKey (SpecialKey KeyDown) Down _ _) game   = undefined
-eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = undefined
-eventHandler (EventKey (Char 'r') Down _ _) game             = undefined
+eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = confirmShip game
+eventHandler (EventKey (SpecialKey key) Down _ _) game       = moveShip game key
+eventHandler (EventKey (Char 'r') Down _ _) game             = rotateShip game
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game = 
     case gameStage game of
          Shooting User -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
-         Placing User  -> placeShip game (mouseToCell mousePos boardUserPos) 4 Vertical-- change to a function that places ships instead
+         --Placing User  -> placeShip game (mouseToCell mousePos boardUserPos) 7 Vertical-- change to a function that places ships instead
          _ -> game
 eventHandler _ game = game 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 --------------------- AI --------------------------------
