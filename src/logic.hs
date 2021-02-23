@@ -102,11 +102,11 @@ rotateShip game
                                       Vertical   -> Horizontal
 
 confirmShip :: Game -> Game
-confirmShip game | ships == [] = game {gameStage = Shooting User} 
-                 | validShipPlacement (gameBoardUser game) coord s d = placeShip game coord s d
+confirmShip game | validShipPlacement (gameBoardUser game) coord s d = (placeShip game coord s d) {gameStage = newGameStage}
                  | otherwise = game
-                   where (coord, d, s) =  head $ ships
-                         ships = shipsUser game 
+                   where (coord, d, s) = head ships
+                         ships = shipsUser game
+                         newGameStage = if null $ tail ships then Shooting User else Placing User
 
 
 ---------------------------- END Moving Ship Picture -----------------
