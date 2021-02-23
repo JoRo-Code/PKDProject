@@ -11,31 +11,59 @@ import System.IO
 
 --import Data.Stack
 ------------------- Imports -------------------
+data SquareState = Checked           | NotChecked                 deriving (Show, Eq)
+data Cell        = Empty SquareState | Ship SquareState           deriving (Show, Eq)
+data Player      = User              | AI                         deriving (Show, Eq)
+data GameStage   = Placing Player    | Shooting Player            deriving (Show, Eq)
+data Direction   = Horizontal        | Vertical                   deriving (Show, Eq)  
 
+type Row         = Int
+type Col         = Int
+type CellCoord   = (Col, Row)
+type ScreenCoord = (Float, Float)
+type Board       = Array (Col, Row) Cell
+type BoardSize   = Int
+type ShipSize    = Int
 
 type ShootList = [(CellCoord,Cell)]
 type Stack = [(CellCoord,Cell)]
 
 
 -- returns boardsize from given board
-getBoardSize :: Board -> BoardSize
-getBoardSize b =  round . sqrt . fromIntegral $ length b
 
+validCoordinates :: CellCoord -> Bool
+validCoordinates  = inRange boardIndex
+                    where boardIndex = ((0, 0), (n - 1, n - 1)) 
 
+getCell :: Board -> CellCoord -> Cell
+getCell b c = b ! c
+
+checkCell :: Board -> CellCoord -> Board
+checkCell b (c, r) = case getCell b (c, r) of
+                      Empty NotChecked -> b // [((c, r), Empty Checked)]   
+                      Ship NotChecked  -> b // [((c, r), Ship Checked)]
+                      _ -> b
+
+initBoard :: BoardSize -> Board        
+initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Ship NotChecked)
+             where boardIndex = ((0, 0), (s - 1, s - 1)) 
+
+n :: BoardSize
+n = 5
 --------------------- AI --------------------------------
 
 -- Creates a ShootList from a Col in a board
 aiShootListCol :: Board -> Col -> ShootList
 aiShootListCol board r = aiShootListColAux board (r,0)
   where aiShootListColAux :: Board -> CellCoord -> ShootList
-        aiShootListColAux board (c,r) | r == getBoardSize board = []
+        aiShootListColAux board (c,r) | r == n = []
                                       | otherwise = ((c,r),getCell board (c,r)) : aiShootListColAux board (c,r+1)
 
 -- Creates a ShootList from all Cols in a board
 aiShootList :: Board -> ShootList
 aiShootList board = aiShootListAux board 0
   where aiShootListAux :: Board -> Col -> ShootList
-        aiShootListAux board c | c == getBoardSize board = []
+        aiShootListAux board c | c == n = []
                                | otherwise = aiShootListCol board c ++ aiShootListAux board (c+1)
 
 -- Sorts a shootlist so AI prioritises cells that are not next to each other
@@ -92,18 +120,20 @@ updateStack s _ = s
 -- Returns a Stack of the cohesive cells to a cell in a row
 cohesiveCellsRow :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCellsRow b ((c,r),x) 
-  | validCoordinates (getBoardSize b) (c,r-1) && validCoordinates (getBoardSize b) (c,r+1) = [((c,r-1),getCell b (c,r-1)), ((c,r+1),getCell b (c,r+1))]
-  | validCoordinates (getBoardSize b) (c,r-1) = [((c,r-1),getCell b (c,r-1))]
-  | validCoordinates (getBoardSize b) (c,r+1) = [((c,r+1),getCell b (c,r+1))]
+  | validCoordinates (c,r-1) && validCoordinates (c,r+1) = [((c,r-1),getCell b (c,r-1)), ((c,r+1),getCell b (c,r+1))]
+  | validCoordinates (c,r-1) = [((c,r-1),getCell b (c,r-1))]
+  | validCoordinates (c,r+1) = [((c,r+1),getCell b (c,r+1))]
   | otherwise = []
 
 -- Returns a Stack of all cohesive cells to a cell
 cohesiveCells :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCells b ((c,r),x) 
-  | validCoordinates (getBoardSize b) (c-1,r) && validCoordinates (getBoardSize b) (c+1,r) = [((c-1,r),getCell b (c-1,r)), ((c+1,r),getCell b (c+1,r))] ++ cohesiveCellsRow b ((c,r),x)
-  | validCoordinates (getBoardSize b) (c-1,r) = [((c-1,r),getCell b (c-1,r))] ++ cohesiveCellsRow b ((c,r),x)
-  | validCoordinates (getBoardSize b) (c+1,r) = [((c+1,r),getCell b (c+1,r))] ++ cohesiveCellsRow b ((c,r),x)
+  | validCoordinates (c-1,r) && validCoordinates (c+1,r) = [((c-1,r),getCell b (c-1,r)), ((c+1,r),getCell b (c+1,r))] ++ cohesiveCellsRow b ((c,r),x)
+  | validCoordinates (c-1,r) = [((c-1,r),getCell b (c-1,r))] ++ cohesiveCellsRow b ((c,r),x)
+  | validCoordinates (c+1,r) = [((c+1,r),getCell b (c+1,r))] ++ cohesiveCellsRow b ((c,r),x)
   | otherwise = cohesiveCellsRow b ((c,r),x)
 
---tester :: (Array (Int, Int) Cell, [a])
+tester :: (Array (Int, Int) Cell, [a])
 tester = (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Ship NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Ship NotChecked),((2,1),Ship NotChecked),((2,2),Empty NotChecked)],[])
+tester2 :: (Array (Int, Int) Cell, [a])
+tester2 = (array ((0,0),(2,2)) [((0,0),Ship NotChecked),((0,1),Ship NotChecked),((0,2),Ship NotChecked),((1,0),Ship NotChecked),((1,1),Ship NotChecked),((1,2),Ship NotChecked),((2,0),Ship NotChecked),((2,1),Ship NotChecked),((2,2),Ship NotChecked)],[])
