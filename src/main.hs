@@ -8,19 +8,21 @@ import Logic        -- eventHandler
 import Rendering    -- drawGame
 import System.Random
 
-placeMultipleShipsAI :: Board -> Ships -> Board
-placeMultipleShipsAI b [] = b
-placeMultipleShipsAI b (ship:ships) = placeMultipleShipsAI (placeShipAI b s (findAllValidPlacements b s)) ships
+--placeMultipleShipsAI :: (RandomGen g) => g -> Board -> Ships -> Board
+placeMultipleShipsAI gen b [] = b
+placeMultipleShipsAI gen b (ship:ships) = placeMultipleShipsAI newGen (newBoard) ships
                                       where (_, _, s) = ship
+                                            (newBoard, newGen) = placeShipAI gen b s (findAllValidPlacements b s)
 
-randomPlacement :: (RandomGen g) => g -> [(CellCoord, Direction)] -> (CellCoord, Direction)
-randomPlacement seed list = undefined
+
+--randomPlacement :: (RandomGen g) => g -> [(CellCoord, Direction)] -> ((CellCoord, Direction), g)
+randomPlacement gen list = (list !! randomInt, newGen)
                      where range = (0, length list - 1)
-                           --(randomInt, seed) = uniformRM range seed
+                           (randomInt, newGen) = randomR range gen ::  (Int, StdGen)
 
-placeShipAI :: Board -> ShipSize -> [(CellCoord, Direction)] -> Board
-placeShipAI b s placements = placeShipAux b coord s d
-                             where (coord , d) = head placements--randomPlacement placements -- call random function here
+--placeShipAI :: (RandomGen g) => g -> Board -> ShipSize -> [(CellCoord, Direction)] -> (Board, g)
+placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
+                             where ((coord , d), newGen) = randomPlacement gen placements --randomPlacement placements -- call random function here
                            
 findAllValidPlacements :: Board -> ShipSize -> [(CellCoord, Direction)]
 findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizontal ++ findValidDirectionalPlacements b allCoords s Vertical 
@@ -44,11 +46,14 @@ fps :: Int
 fps = 30
 
 main :: IO ()
-main = play
+main = do
+       gen <- getStdGen
+       let
+       play
        window
        backgroundColor
        fps
-       initGame {gameBoardAI = placeMultipleShipsAI (gameBoardAI initGame) initShips}
+       initGame {gameBoardAI = placeMultipleShipsAI gen (gameBoardAI initGame) initShips}
        drawGame
        eventHandler --eventHandler
        (const id)
