@@ -36,7 +36,7 @@ data Game = Game { gameBoardUser :: Board ,
                  } deriving (Show, Eq)
 
 n :: BoardSize
-n = 5
+n = 10
 
 -- Create a new board, a 2d array, where all cells are empty notchecked initially.                                                         
 initBoard :: Board        
@@ -45,7 +45,7 @@ initBoard = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked
 
 
 initShips :: Ships
-initShips = [((0,0), Horizontal, 5),((0,0), Horizontal, 5),((0,0), Horizontal, 5),((0,0), Horizontal, 5),((0,0), Horizontal, 5)]--[((0, 0), Horizontal, 5), ((0, 3), Vertical, 4), ((0, 0), Horizontal, 3), ((0, 1), Vertical, 2)]
+initShips = [((0,4), Vertical, 5),((0,4), Vertical, 5),((0,4), Vertical, 5),((0,4), Vertical, 5),((0,4), Vertical, 5)]--[((0, 0), Horizontal, 5), ((0, 3), Vertical, 4), ((0, 0), Horizontal, 3), ((0, 1), Vertical, 2)]
 
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard,--array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Ship NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)],

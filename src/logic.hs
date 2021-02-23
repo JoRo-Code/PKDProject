@@ -109,9 +109,10 @@ moveShip game keyDir
 
 rotateShip :: Game -> Game
 rotateShip game 
-                | validCoordinates $ endCoordinates coord s newDirection =  game {shipsUser = (coord, newDirection, s) : tail (shipsUser game)}
+                | validCoordinates $ endCoordinates coord s newDirection =  game {shipsUser = (coord, newDirection, s) : tail ships}
                 | otherwise = game
-                  where (coord, d, s) = head $ shipsUser game
+                  where (coord, d, s) = head ships
+                        ships = shipsUser game
                         newDirection = case d of
                                       Horizontal -> Vertical
                                       Vertical   -> Horizontal
@@ -126,22 +127,22 @@ confirmShip game | validShipPlacement (gameBoardUser game) coord s d = (placeShi
 
 ---------------------------- END Moving Ship Picture -----------------
 
-
 eventHandler :: Event -> Game -> Game
 eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = 
      case gameStage game of 
-         Placing User -> trace ("Enter: " ++ show (gameStage game)) confirmShip game
-         _            -> trace ("Enter: " ++ show (gameStage game)) game
-         where 
-             ships = shipsUser game
+         Placing User -> confirmShip game
+         _            -> game
+
 eventHandler (EventKey (SpecialKey key) Down _ _) game       = 
     case gameStage game of 
-        Placing User -> trace ("Arrow: " ++ show (gameStage game)) moveShip game key
-        _            -> trace ("Arrow: " ++ show (gameStage game)) game
+        Placing User -> moveShip game key
+        _            -> game
+
 eventHandler (EventKey (Char 'r') Down _ _) game             = 
     case gameStage game of 
          Placing User -> rotateShip game
          _            -> game
+
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
 
     case (winner game, gameStage game) of
