@@ -44,12 +44,12 @@ checkCell b (c, r) = case getCell b (c, r) of
                       Ship NotChecked  -> b // [((c, r), Ship Checked)]
                       _ -> b
 
-initBoard :: BoardSize -> Board        
-initBoard s = array boardIndex $ zip (range boardIndex) (repeat $ Ship NotChecked)
-             where boardIndex = ((0, 0), (s - 1, s - 1)) 
+initBoard :: Board        
+initBoard = array boardIndex $ zip (range boardIndex) (repeat $ Ship NotChecked)
+             where boardIndex = ((0, 0), (n - 1, n - 1)) 
 
 n :: BoardSize
-n = 5
+n = 4
 --------------------- AI --------------------------------
 
 -- Creates a ShootList from a Col in a board
@@ -96,7 +96,7 @@ aiShoot (b,s) = aiShootAux (b,removeChecked $ updateStack s (filterShootList b))
 --PRE: ShootList is not empty
 aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
 aiShootAux (b,s) l 
-  | aiHunt (head s) = (checkCell b (fst $ head s),cohesiveCells b (head s) ++ tail s)
+  | aiHunt (head s) = (checkCell b (fst $ head s),removeChecked $ removeDuplicates (cohesiveCells b (head s) ++ tail s) [])
   | otherwise = (checkCell b (fst $ head s),tail s)
 
 -- Creates a ShootList of all cells with state NotChecked
@@ -111,6 +111,14 @@ removeChecked (x:xs) = removeCheckedAux x ++ removeChecked xs
         removeCheckedAux ((_,_),Ship Checked) = []
         removeCheckedAux ((_,_),Empty Checked) = []
         removeCheckedAux x = [x]
+
+-- Removes duplicte cells from Stack
+removeDuplicates :: Stack -> Stack -> Stack
+removeDuplicates [] ns = ns
+removeDuplicates (x:xs) ns 
+  | elem x ns = removeDuplicates xs ns
+  | otherwise = removeDuplicates xs (ns ++ [x])
+
 
 -- Updates Stack with the head from ShootList if Stack is empty
 updateStack :: Stack -> ShootList -> Stack
@@ -137,3 +145,5 @@ tester :: (Array (Int, Int) Cell, [a])
 tester = (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Ship NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Ship NotChecked),((2,1),Ship NotChecked),((2,2),Empty NotChecked)],[])
 tester2 :: (Array (Int, Int) Cell, [a])
 tester2 = (array ((0,0),(2,2)) [((0,0),Ship NotChecked),((0,1),Ship NotChecked),((0,2),Ship NotChecked),((1,0),Ship NotChecked),((1,1),Ship NotChecked),((1,2),Ship NotChecked),((2,0),Ship NotChecked),((2,1),Ship NotChecked),((2,2),Ship NotChecked)],[])
+
+--BUG: Duplicates appear in stack
