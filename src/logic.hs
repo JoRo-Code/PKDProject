@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-} 
 module Logic where
 
 import Graphics.Gloss.Interface.Pure.Game
@@ -41,12 +42,26 @@ isChecked b coord = s == Checked
 
 playerShoot :: Game -> CellCoord -> Game
 playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI game) coord)
-                        = game {gameBoardAI = checkCell (gameBoardAI game) coord, 
-                                --gameStage = Shooting AI,
-                                gameBoardUser = fst $ aiShoot (gameBoardUser game, stackAI game),
-                                stackAI = snd $ aiShoot (gameBoardUser game, stackAI game)
+                        = game {gameBoardAI = shotAIboard, 
+                                gameBoardUser = shotUserBoard,
+                                stackAI = updatedAIstack,
+                                winner = foo shotUserBoard shotAIboard
                                 } 
                        | otherwise = game
+                       where shotAIboard = checkCell (gameBoardAI game) coord
+                             winCheck = isWinner shotUserBoard
+                             (shotUserBoard, updatedAIstack) = aiShoot (gameBoardUser game, stackAI game)
+
+foo :: Board -> Board -> Maybe Player
+foo boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
+                             (True, True)  -> Just User
+                             (True, False) -> Just AI
+                             (False, True) -> Just User
+                             (_, _)        -> Nothing
+
+isWinner :: Board -> Bool
+isWinner b = not $ any (\cell -> cell == Ship NotChecked) b
+
 
 ---------------------------- Placing ship ----------------------------
 placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
@@ -127,10 +142,11 @@ eventHandler (EventKey (Char 'r') Down _ _) game             =
     case gameStage game of 
          Placing User -> rotateShip game
          _            -> game
-eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game = 
-    case gameStage game of
-         Shooting User -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
-         --Placing User  -> placeShip game (mouseToCell mousePos boardUserPos) 7 Vertical-- change to a function that places ships instead
+eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
+
+    case (winner game, gameStage game) of
+         (Nothing, Shooting User) -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
+         (_, Shooting User) -> initGame
          _ -> game
 eventHandler _ game = game 
 
@@ -181,7 +197,7 @@ aiShoot (b,s) = aiShootAux (b,removeChecked $ updateStack s (filterShootList b))
 --PRE: ShootList is not empty
 aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
 aiShootAux (b,s) l 
-  | aiHunt (head s) = (checkCell b (fst $ head s),cohesiveCells b (head s) ++ tail s)
+  | aiHunt (head s) = (checkCell b (fst $ head s),removeChecked $ removeDuplicates (cohesiveCells b (head s) ++ tail s) [])
   | otherwise = (checkCell b (fst $ head s),tail s)
 
 -- Creates a ShootList of all cells with state NotChecked
@@ -196,6 +212,12 @@ removeChecked (x:xs) = removeCheckedAux x ++ removeChecked xs
         removeCheckedAux ((_,_),Ship Checked) = []
         removeCheckedAux ((_,_),Empty Checked) = []
         removeCheckedAux x = [x]
+
+removeDuplicates :: Stack -> Stack -> Stack
+removeDuplicates [] ns = ns
+removeDuplicates (x:xs) ns 
+  | elem x ns = removeDuplicates xs ns
+  | otherwise = removeDuplicates xs (ns ++ [x])
 
 -- Updates Stack with the head from ShootList if Stack is empty
 updateStack :: Stack -> ShootList -> Stack
