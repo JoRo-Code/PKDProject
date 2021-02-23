@@ -103,6 +103,10 @@ hitsToPicture board pos = cellsToPicture board pos (Ship Checked) crossPicture
 shipsToPicture :: Board -> BoardPos -> Picture
 shipsToPicture board pos = cellsToPicture board pos (Ship NotChecked) shipPicture
 
+showPlacingShip :: Ships -> Picture
+showPlacingShip [] = Blank
+showPlacingShip ((coord, d, s): xs) = placingShipPicture coord d s 
+
 boardAsRunningPicture :: Board -> Board -> Ships -> Picture
 boardAsRunningPicture userBoard boardAI ships =
     pictures [color boardGridColor boardAIGrid,
@@ -113,9 +117,8 @@ boardAsRunningPicture userBoard boardAI ships =
               color (placedShip cellColor) $ shipsToPicture userBoard boardUserPos,
               color (hit cellColor)  $ hitsToPicture userBoard boardUserPos,
               color (hit cellColor)  $ hitsToPicture boardAI boardAIPos,
-              color (movingShip cellColor) $ placingShipPicture coord d s
+              color (movingShip cellColor) $ showPlacingShip ships
              ]
-             where (coord, d, s) = head ships
 
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))

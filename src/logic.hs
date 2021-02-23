@@ -80,8 +80,9 @@ mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
 mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth), floor ((y - y1 + boardHeight  * 0.5) / cellHeight ))
                                                                        
 moveShip :: Game -> SpecialKey -> Game
-moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
-                       && validCoordinates newCoord  = game {shipsUser = (newCoord, d, s) : tail (shipsUser game)}
+moveShip game keyDir 
+                     | validCoordinates (endCoordinates newCoord s d)
+                       && validCoordinates newCoord = game {shipsUser = (newCoord, d, s) : tail (shipsUser game)}
                      | otherwise = game
                       where ((c, r), d, s) = head $ shipsUser game
                             newCoord =  case keyDir of
@@ -89,9 +90,11 @@ moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
                                         KeyRight -> (c + 1, r)  
                                         KeyUp    -> (c, r + 1)
                                         KeyDown  -> (c, r - 1)
+                                        _        -> (c, r)
 
 rotateShip :: Game -> Game
-rotateShip game | validCoordinates $ endCoordinates coord s newDirection =  game {shipsUser = (coord, newDirection, s) : tail (shipsUser game)}
+rotateShip game 
+                | validCoordinates $ endCoordinates coord s newDirection =  game {shipsUser = (coord, newDirection, s) : tail (shipsUser game)}
                 | otherwise = game
                   where (coord, d, s) = head $ shipsUser game
                         newDirection = case d of
@@ -99,17 +102,31 @@ rotateShip game | validCoordinates $ endCoordinates coord s newDirection =  game
                                       Vertical   -> Horizontal
 
 confirmShip :: Game -> Game
-confirmShip game | validShipPlacement (gameBoardUser game) coord s d = placeShip game coord s d
+confirmShip game | ships == [] = game {gameStage = Shooting User} 
+                 | validShipPlacement (gameBoardUser game) coord s d = placeShip game coord s d
                  | otherwise = game
-                   where (coord, d, s) = head $ shipsUser game
+                   where (coord, d, s) =  head $ ships
+                         ships = shipsUser game 
+
 
 ---------------------------- END Moving Ship Picture -----------------
 
 
 eventHandler :: Event -> Game -> Game
-eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = confirmShip game
-eventHandler (EventKey (SpecialKey key) Down _ _) game       = moveShip game key
-eventHandler (EventKey (Char 'r') Down _ _) game             = rotateShip game
+eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = 
+     case gameStage game of 
+         Placing User -> trace ("Enter: " ++ show (gameStage game)) confirmShip game
+         _            -> trace ("Enter: " ++ show (gameStage game)) game
+         where 
+             ships = shipsUser game
+eventHandler (EventKey (SpecialKey key) Down _ _) game       = 
+    case gameStage game of 
+        Placing User -> trace ("Arrow: " ++ show (gameStage game)) moveShip game key
+        _            -> trace ("Arrow: " ++ show (gameStage game)) game
+eventHandler (EventKey (Char 'r') Down _ _) game             = 
+    case gameStage game of 
+         Placing User -> rotateShip game
+         _            -> game
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game = 
     case gameStage game of
          Shooting User -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
