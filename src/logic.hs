@@ -139,7 +139,7 @@ eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  =
 
 eventHandler (EventKey (SpecialKey key) Down _ _) game       = 
     case gameStage game of 
-        Placing User -> moveShip game key
+        Placing User -> trace ("Current gen: " ++ show (gen game)) moveShip game key
         _            -> game
 
 eventHandler (EventKey (Char 'r') Down _ _) game             = 
