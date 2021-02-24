@@ -1,3 +1,4 @@
+module Shuffle where
 import System.Random
 
 {- shuffle list seed
