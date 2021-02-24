@@ -52,7 +52,7 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
                        | otherwise = game
                        where shotAIboard = checkCell (gameBoardAI game) coord
                              winCheck = isWinner shotUserBoard
-                             (shotUserBoard, updatedAIstack) = aiShoot (gameBoardUser game, stackAI game)
+                             (shotUserBoard, updatedAIstack) = aiShoot (gameBoardUser game, stackAI game) (gen game)
 
 foo :: Board -> Board -> Maybe Player
 foo boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
@@ -171,8 +171,8 @@ aiShootList :: Board -> ShootList
 aiShootList board = [((c,r), board ! (c,r)) | c <- [0..n-1], r <- [0..n-1]]
 
 -- Creates a ShootList of all cells with state NotChecked
-filterShootList :: Board -> ShootList
-filterShootList b = removeChecked (aiPrio (aiShootList b) [])
+filterShootList :: Board -> StdGen -> ShootList
+filterShootList b gen = removeChecked (aiPrio (fst $ shuffle (aiShootList b) gen ) [])
 
 -- Sorts a shootlist so AI prioritises cells that are not next to each other
 aiPrio :: ShootList -> ShootList -> ShootList
@@ -219,5 +219,5 @@ aiShootAux (b,s) l
   | otherwise = (checkCell b (fst $ head s),tail s)
 
 -- Checks first cell in stack
-aiShoot :: (Board,Stack) -> (Board,Stack)
-aiShoot (b,s) = aiShootAux (b,removeChecked $ updateStack s (filterShootList b)) (filterShootList b)
+aiShoot :: (Board,Stack) -> StdGen -> (Board,Stack)
+aiShoot (b,s) gen = aiShootAux (b,removeChecked $ updateStack s (filterShootList b gen)) (filterShootList b gen)
