@@ -48,12 +48,13 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
                         = game {gameBoardAI = shotAIboard, 
                                 gameBoardUser = shotUserBoard,
                                 stackAI = updatedAIstack,
-                                winner = foo shotUserBoard shotAIboard
+                                winner = foo shotUserBoard shotAIboard,
+                                gen = newGen
                                 } 
                        | otherwise = game
                        where shotAIboard = checkCell (gameBoardAI game) coord
                              winCheck = isWinner shotUserBoard
-                             (shotUserBoard, updatedAIstack) = aiShoot (gameBoardUser game, stackAI game) (gen game)
+                             ((shotUserBoard, updatedAIstack), newGen) = aiShoot (gameBoardUser game, stackAI game) (gen game)
 
 foo :: Board -> Board -> Maybe Player
 foo boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
@@ -172,8 +173,9 @@ aiShootList :: Board -> ShootList
 aiShootList board = [((c,r), board ! (c,r)) | c <- [0..n-1], r <- [0..n-1]]
 
 -- Creates a ShootList of all cells with state NotChecked
-filterShootList :: Board -> StdGen -> ShootList
-filterShootList b gen = removeChecked (aiPrio (fst $ shuffle (aiShootList b) gen ) [])
+filterShootList :: Board -> StdGen -> (ShootList, StdGen)
+filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
+    where (shuffledList, newGen) = shuffle (aiShootList b) gen 
 
 -- Sorts a shootlist so AI prioritises cells that are not next to each other
 aiPrio :: ShootList -> ShootList -> ShootList
@@ -220,5 +222,6 @@ aiShootAux (b,s) l
   | otherwise = (checkCell b (fst $ head s),tail s)
 
 -- Checks first cell in stack
-aiShoot :: (Board,Stack) -> StdGen -> (Board,Stack)
-aiShoot (b,s) gen = aiShootAux (b,removeChecked $ updateStack s (filterShootList b gen)) (filterShootList b gen)
+aiShoot :: (Board,Stack) -> StdGen -> ((Board, Stack), StdGen)
+aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newlist) newList, newGen)
+    where (newList, newGen) = filterShootList b gen
