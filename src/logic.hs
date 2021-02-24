@@ -153,7 +153,10 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
 
     case (winner game, gameStage game) of
          (Nothing, Shooting User) -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
-         (_, Shooting User) -> initGame {gameBoardAI = head $ gameBoardsAI game, gameBoardsAI = tail $ gameBoardsAI game} 
+         (_, Shooting User) -> initGame {gameBoardAI = head $ gameBoardsAI game
+                                        , gameBoardsAI = tail $ gameBoardsAI game
+                                        , gen = gen game
+                                        } 
          _ -> game
 eventHandler _ game = game 
 
