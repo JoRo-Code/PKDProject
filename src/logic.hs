@@ -183,6 +183,18 @@ aiPrio l = aiPrioAux l []
           | even $ getCol x = if  odd $ getRow x then aiPrioAux xs ([x] ++ acc) else aiPrioAux xs (acc ++ [x])
           | otherwise       = if even $ getRow x then aiPrioAux xs ([x] ++ acc) else aiPrioAux xs (acc ++ [x])
 
+aiPrio' :: ShootList -> ShootList
+aiPrio' s = foldl combos [] s
+
+combos :: ShootList -> (CellCoord,Cell) -> ShootList
+combos acc e@((c, r), cell) = case (even c, even r) of
+                              (True, False)  -> e : acc
+                              (True, True)   -> acc ++ [e]
+                              (False, True)  -> e : acc
+                              (False, False) -> acc ++ [e]
+             
+
+
 -- Removes already checked cells from Stack or ShootList
 removeChecked :: [(CellCoord, Cell)] -> [(CellCoord, Cell)]
 removeChecked s = filter (\(coord, cell) -> cell == Empty NotChecked || cell == Ship NotChecked) s
