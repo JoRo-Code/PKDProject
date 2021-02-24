@@ -14,7 +14,6 @@ shuffle list gen = shuffleAux list [] gen
 
 shuffleAux :: [a] -> [a] -> StdGen -> ([a], StdGen)
 -- VARIANT: length list
-shuffleAux :: [a] -> [a] -> t -> ([a], b)
 shuffleAux [] shuffledList gen = (shuffledList, gen)
 shuffleAux list randomList gen = shuffleAux updatedList (pickedElement:randomList) finalGen
         where
