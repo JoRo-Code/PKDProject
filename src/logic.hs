@@ -172,16 +172,14 @@ aiShootList board = [((c,r), board ! (c,r)) | c <- [0..n-1], r <- [0..n-1]]
 
 -- Creates a ShootList of all cells with state NotChecked
 filterShootList :: Board -> ShootList
-filterShootList b = removeChecked (aiPrio (aiShootList b))
+filterShootList b = removeChecked (aiPrio (aiShootList b) [])
 
 -- Sorts a shootlist so AI prioritises cells that are not next to each other
-aiPrio :: ShootList -> ShootList
-aiPrio l = aiPrioAux l []
-  where aiPrioAux :: ShootList -> ShootList -> ShootList
-        aiPrioAux [] acc = acc
-        aiPrioAux (x:xs) acc 
-          | even $ getCol x = if  odd $ getRow x then aiPrioAux xs ([x] ++ acc) else aiPrioAux xs (acc ++ [x])
-          | otherwise       = if even $ getRow x then aiPrioAux xs ([x] ++ acc) else aiPrioAux xs (acc ++ [x])
+aiPrio :: ShootList -> ShootList -> ShootList
+aiPrio [] acc = acc
+aiPrio (x:xs) acc 
+  | even $ getCol x = if  odd $ getRow x then aiPrio xs ([x] ++ acc) else aiPrio xs (acc ++ [x])
+  | otherwise       = if even $ getRow x then aiPrio xs ([x] ++ acc) else aiPrio xs (acc ++ [x])
 
 aiPrio' :: ShootList -> ShootList
 aiPrio' s = foldl combos [] s
