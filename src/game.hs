@@ -1,6 +1,7 @@
 module Game where
 
 import Data.Array
+import System.Random
 
 data SquareState  = Checked           | NotChecked                 deriving (Show, Eq)
 data Cell         = Empty SquareState | Ship SquareState           deriving (Show, Eq)
@@ -31,8 +32,8 @@ data Game = Game { gameBoardUser :: Board ,
                    gameStage     :: GameStage,
                    shipsUser     :: Ships,
                    stackAI       :: Stack,
-                   winner        :: Maybe Player
-                  
+                   winner        :: Maybe Player,
+                   gen           :: StdGen
                  } deriving (Show, Eq)
 
 n :: BoardSize
@@ -48,7 +49,7 @@ initShips :: Ships
 initShips = [((0,4), Vertical, 5),((0,4), Vertical, 4),((0,4), Vertical, 3),((0,4), Vertical, 3),((0,4), Vertical, 2)]--[((0, 0), Horizontal, 5), ((0, 3), Vertical, 4), ((0, 0), Horizontal, 3), ((0, 1), Vertical, 2)]
 
 initGame :: Game
-initGame = Game { gameBoardUser = initBoard,--array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Ship NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)],
+initGame = Game { gameBoardUser = initBoard, --array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Ship NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)],
                   gameBoardAI   = initBoard,
                   gameStage     = Placing User,
                   shipsUser     = initShips,

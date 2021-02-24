@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-} 
 module Logic where
 
+import Shuffle
 import Graphics.Gloss.Interface.Pure.Game
 import Data.Array
 
