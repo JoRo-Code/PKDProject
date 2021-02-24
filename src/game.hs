@@ -54,5 +54,6 @@ initGame = Game { gameBoardUser = initBoard, --array ((0,0),(2,2)) [((0,0),Empty
                   gameStage     = Placing User,
                   shipsUser     = initShips,
                   stackAI       = [],
-                  winner        = Nothing
+                  winner        = Nothing,
+                  gen           = mkStdGen 100
                 }

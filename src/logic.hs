@@ -3,6 +3,7 @@ module Logic where
 
 import Shuffle
 import Graphics.Gloss.Interface.Pure.Game
+import System.Random
 import Data.Array
 
 import Game
@@ -85,8 +86,8 @@ followPlacementRules ::  Board -> CellCoord -> ShipSize -> Direction -> Bool
 followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) || b ! coord /= Ship NotChecked) (surroundingCells b coord s d)
 
 surroundingCells :: Board -> CellCoord -> ShipSize -> Direction -> [CellCoord]
-surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c-1..c+s]]
-surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s..r+1]]                                                          
+surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c..c+s-1]] ++ [(c-1, r)] ++ [(c+s,r)]
+surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1..r]] ++ [(c, r + 1)] ++ [(c, r +s)]                                                   
  
 offset :: CellCoord -> Direction -> (Col, Row)
 offset (c, r) Vertical = (c, r - 1)
