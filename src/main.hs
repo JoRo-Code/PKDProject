@@ -48,7 +48,7 @@ randomElement list gen = (list !! randomInt, newGen)
 -}
 placeShipAI :: StdGen -> Board -> ShipSize -> [(CellCoord, Direction)] -> (Board, StdGen)
 placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
-                             where ((coord , d), newGen) = randomElement gen placements
+                             where ((coord , d), newGen) = randomElement placements gen
 
 
 {- placeMultipleShipsAI gen board ships
@@ -61,6 +61,11 @@ placeMultipleShipsAI :: StdGen -> Board -> Ships -> (Board, StdGen)
 placeMultipleShipsAI gen b [] = (b, gen)
 placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBoard ships
                                       where (newBoard, newGen) = placeShipAI gen b s (findAllValidPlacements b s)
+
+listOfBoards :: Int -> StdGen -> Board -> Ships -> [Board]
+listOfBoards 0 gen b ships = []
+listOfBoards n gen b ships = newBoard  : (listOfBoards (n-1) newGen b ships)
+                           where (newBoard, newGen) = placeMultipleShipsAI gen b ships 
 
 -- window specifications
 window :: Display
@@ -81,6 +86,7 @@ main :: IO ()
 main = do
        gen <- getStdGen
        let (initGameBoardAI, newGen) =  placeMultipleShipsAI gen (gameBoardAI initGame) initShips
-       play window backgroundColor fps initGame {gameBoardAI = initGameBoardAI, gen = newGen} drawGame eventHandler  (const id)
+       let aiBoards = listOfBoards 1000 gen initBoard initShips
+       play window backgroundColor fps initGame {gameBoardAI = head aiBoards, gameBoardsAI = tail aiBoards, gen = gen} drawGame eventHandler  (const id)
 
 

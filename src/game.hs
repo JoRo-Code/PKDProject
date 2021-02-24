@@ -29,6 +29,7 @@ type Ships = [(CellCoord, Direction, ShipSize)]
 
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
+                   gameBoardsAI  :: [Board],
                    gameStage     :: GameStage,
                    shipsUser     :: Ships,
                    stackAI       :: Stack,
@@ -50,7 +51,7 @@ initShips = [((0,4), Vertical, 5),((0,4), Vertical, 4),((0,4), Vertical, 3),((0,
 
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard, --array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Ship NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)],
-                  gameBoardAI   = initBoard,
+                  gameBoardAI   = initBoard, --head gameBoardsAI,
                   gameStage     = Placing User,
                   shipsUser     = initShips,
                   stackAI       = [],
