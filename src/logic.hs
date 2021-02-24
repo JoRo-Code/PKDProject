@@ -167,9 +167,8 @@ getCol ((a,_),_) = a
 getRow :: (CellCoord,Cell) -> Row
 getRow ((_,b),_) = b
 
--- Creates a ShootList from all Cols in a board
 aiShootList :: Board -> ShootList
-aiShootList board = [((c,r), board ! (c,r)) | c <- [0..n-1], r <- [0..n-1]]
+aiShootList b = [((c,r), b ! (c,r)) | c <- [0..n-1], r <- [0..n-1]]
 
 -- Creates a ShootList of all cells with state NotChecked
 filterShootList :: Board -> StdGen -> ShootList
@@ -193,7 +192,6 @@ combos acc e@((c, r), cell) = case (even c, even r) of
                               (False, False) -> acc ++ [e]
              
 
-
 -- Removes already checked cells from Stack or ShootList
 removeChecked :: [(CellCoord, Cell)] -> [(CellCoord, Cell)]
 removeChecked s = filter (\(coord, cell) -> cell == Empty NotChecked || cell == Ship NotChecked) s
@@ -208,17 +206,17 @@ cohesiveCells :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCells b ((c,r),x) = map (\coord -> (coord, b ! coord)) (filter validCoordinates [(c,r+1), (c,r-1), (c-1,r), (c+1,r)])
 
 -- Returns True if a Cell contains an unchecked Ship, otherwise False
-aiHunt :: (CellCoord,Cell) -> Bool
-aiHunt ((_,_),Ship NotChecked) = True
-aiHunt ((_,_),_) = False
+isShip :: (CellCoord,Cell) -> Bool
+isShip (_, Ship NotChecked) = True
+isShip _ = False
 
 -- Checks first cell in stack
 --PRE: ShootList is not empty
 aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
-aiShootAux (b,s) l 
-  | aiHunt (head s) = (checkCell b (fst $ head s),removeChecked $ nub (cohesiveCells b (head s) ++ tail s))
-  | otherwise = (checkCell b (fst $ head s),tail s)
+aiShootAux (b, s@(coord,cell):st) l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st))
+                                    | otherwise = (checkCell b coord, st)
 
 -- Checks first cell in stack
 aiShoot :: (Board,Stack) -> StdGen -> (Board,Stack)
-aiShoot (b,s) gen = aiShootAux (b,removeChecked $ updateStack s (filterShootList b gen)) (filterShootList b gen)
+aiShoot (b, s) gen = aiShootAux (b,updateStack s newShootList) newShootList
+                   where newShootList = filterShootList b gen
