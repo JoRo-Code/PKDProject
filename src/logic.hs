@@ -169,6 +169,9 @@ getRow ((_,b),_) = b
 aiShootList :: Board -> ShootList
 aiShootList board = [((c,r), board ! (c,r)) | c <- [0..n-1], r <- [0..n-1]]
 
+-- Creates a ShootList of all cells with state NotChecked
+filterShootList :: Board -> ShootList
+filterShootList b = removeChecked (aiPrio (aiShootList b))
 
 -- Sorts a shootlist so AI prioritises cells that are not next to each other
 aiPrio :: ShootList -> ShootList
@@ -178,15 +181,6 @@ aiPrio l = aiPrioAux l []
         aiPrioAux (x:xs) acc 
           | even $ getCol x = if  odd $ getRow x then aiPrioAux xs ([x] ++ acc) else aiPrioAux xs (acc ++ [x])
           | otherwise       = if even $ getRow x then aiPrioAux xs ([x] ++ acc) else aiPrioAux xs (acc ++ [x])
-
--- Creates a ShootList of all cells with state NotChecked
-filterShootList :: Board -> ShootList
-filterShootList b = removeChecked (aiPrio (aiShootList b))
-
--- Returns True if a Cell contains an unchecked Ship, otherwise False
-aiHunt :: (CellCoord,Cell) -> Bool
-aiHunt ((_,_),Ship NotChecked) = True
-aiHunt ((_,_),_) = False
 
 -- Removes already checked cells from Stack or ShootList
 removeChecked :: [(CellCoord, Cell)] -> [(CellCoord, Cell)]
@@ -201,9 +195,10 @@ updateStack s _ = s
 cohesiveCells :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCells b ((c,r),x) = map (\coord -> (coord, b ! coord)) (filter validCoordinates [(c,r+1), (c,r-1), (c-1,r), (c+1,r)])
 
--- Checks first cell in stack
-aiShoot :: (Board,Stack) -> (Board,Stack)
-aiShoot (b,s) = aiShootAux (b,removeChecked $ updateStack s (filterShootList b)) (filterShootList b)
+-- Returns True if a Cell contains an unchecked Ship, otherwise False
+aiHunt :: (CellCoord,Cell) -> Bool
+aiHunt ((_,_),Ship NotChecked) = True
+aiHunt ((_,_),_) = False
 
 -- Checks first cell in stack
 --PRE: ShootList is not empty
@@ -211,3 +206,7 @@ aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
 aiShootAux (b,s) l 
   | aiHunt (head s) = (checkCell b (fst $ head s),removeChecked $ nub (cohesiveCells b (head s) ++ tail s))
   | otherwise = (checkCell b (fst $ head s),tail s)
+
+-- Checks first cell in stack
+aiShoot :: (Board,Stack) -> (Board,Stack)
+aiShoot (b,s) = aiShootAux (b,removeChecked $ updateStack s (filterShootList b)) (filterShootList b)
