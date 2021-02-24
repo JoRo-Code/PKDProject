@@ -57,3 +57,10 @@ Monday 2021-02-22 - 2 hours
 Tuesday 2021-02-23 - 1 hour
  - added winner state
  - made changes to some functions
+
+ Wednesday 2021-02-24 - 6 hours
+ - improved AI functions
+ - added shuffle function; makes AI shoot randomly
+ - made game replayable
+ - started working on new addition to make AI smarter
+ - planned what everyone should work on
