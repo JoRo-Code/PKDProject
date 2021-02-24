@@ -76,37 +76,16 @@ placeShipAux b (c, r) s d = placeShipAux (b // [((c, r), Ship NotChecked)]) (off
 validShipPlacement :: Board ->  CellCoord -> ShipSize -> Direction -> Bool
 validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d) -- (-1) because the ship part on (r, c) is included
                                   && validCoordinates (c, r)  
-                                  && noCollision b (c,r) s d
+                                  && followPlacementRules b (c,r) s d
 
----------------------------- Making sure ship placement follow the game rules ----------------------------
+-- Make sure that no ships can be placed within the surrounding cells of another ship
+followPlacementRules ::  Board -> CellCoord -> ShipSize -> Direction -> Bool
+followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) || b ! coord /= Ship NotChecked) (surroundingCells b coord s d)
 
---xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   Does not work atm   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
-
-placementRules :: Board -> CellCoord -> ShipSize -> Direction -> Bool
-placementRules b (c, r) s d = all ((== True) . (\ (startCoord, endCoord) -> noCollisionR b startCoord endCoord d)) rangeToCheck
-                            where verticalRangesToCheck = [((c-1,r+1), (c+s,r+1)), ((c-1,r), (c+s,r)), ((c-1,r-1), (c+s,r-1))]
-                                  horizontalRangesToCheck  = [((c-1,r-s),(c-1,r+1)), ((c,r-s), (c,r+1)), ((c+1,r-s), (c+1,r+1)) ]
-                                  rangeToCheck = if d == Vertical then verticalRangesToCheck else horizontalRangesToCheck
-
-
-noCollisionR :: Board -> CellCoord -> CellCoord -> Direction -> Bool
-noCollisionR b startCoord endCoord d | not valid = True
-                                     | startCoord == endCoord = True
-                                     | b ! startCoord == Ship NotChecked = False
-                                     | otherwise = let kek = noCollisionR b (offset startCoord d)  endCoord  d in trace (show kek) $ kek
-                                     where valid = validCoordinates startCoord || validCoordinates endCoord
-                                                                
---xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   Does not work atm   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
-
----------------------------- Making sure ship placement follow the game rules ----------------------------
-
-
--- cheeck if the ship the user want to place will collide with any existing ships
-noCollision :: Board -> CellCoord -> ShipSize -> Direction -> Bool
-noCollision b _ 0 _ = True
-noCollision b (c, r) s d | b ! (c, r) == Ship NotChecked = False
-                         | otherwise = noCollision b (offset (c, r) d) (s - 1) d
-
+surroundingCells :: Board -> CellCoord -> ShipSize -> Direction -> [CellCoord]
+surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c-1..c+s]]
+surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s..r+1]]                                                          
+ 
 offset :: CellCoord -> Direction -> (Col, Row)
 offset (c, r) Vertical = (c, r - 1)
 offset (c, r) Horizontal = (c + 1, r)
