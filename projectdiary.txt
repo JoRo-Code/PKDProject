@@ -52,3 +52,8 @@ Monday 2021-02-22 - 2 hours
  - implemented AI to logic instead of its own module
  - made it possible to play against AI
  - tested playing vs. AI and found a bug
+
+
+Tuesday 2021-02-23 - 1 hour
+ - added winner state
+ - made changes to some functions
