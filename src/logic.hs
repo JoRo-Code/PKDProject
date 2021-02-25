@@ -54,7 +54,7 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
                        | otherwise = game
                        where shotAIboard = checkCell (gameBoardAI game) coord
                              winCheck = isWinner shotUserBoard
-                             ((shotUserBoard, updatedAIstack), newGen) = aiShoot (gameBoardUser game, stackAI game) (gen game)
+                             ((shotUserBoard, updatedAIstack, updatedHits), newGen) = aiShoot (gameBoardUser game, stackAI game, hitsAI game) (gen game)
 
 foo :: Board -> Board -> Maybe Player
 foo boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
@@ -155,7 +155,8 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
          (Nothing, Shooting User) -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
          (_, Shooting User) -> initGame {gameBoardAI = head $ gameBoardsAI game
                                         , gameBoardsAI = tail $ gameBoardsAI game
-                                        , gen = gen game
+                                        , gen = gen game,
+                                        currentRound = currentRound game + 1
                                         } 
          _ -> game
 eventHandler _ game = game 
@@ -217,11 +218,11 @@ isShip _ = False
 
 -- Checks first cell in stack
 --PRE: ShootList is not empty
-aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
-aiShootAux (b, s@(coord,cell):st) l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st))
-                                    | otherwise = (checkCell b coord, st)
+aiShootAux :: (Board,Stack, AIHits) -> ShootList -> (Board,Stack, AIHits)
+aiShootAux (b, s@(coord,cell):st, hits)  l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st), checkCell hits coord)
+                                           | otherwise = (checkCell b coord, st, hits)
 
 -- Checks first cell in stack
-aiShoot :: (Board,Stack) -> StdGen -> ((Board, Stack), StdGen)
-aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newlist) newList, newGen)
-    where (newList, newGen) = filterShootList b gen
+aiShoot :: (Board,Stack, AIHits) -> StdGen -> ((Board, Stack, AIHits), StdGen)
+aiShoot (b,s, hits) gen = (aiShootAux (b,removeChecked $ updateStack s newList, hits) newList,newGen)
+                     where (newList, newGen) = filterShootList b gen

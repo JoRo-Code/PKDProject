@@ -21,13 +21,14 @@ cellColor = CellColor {miss = white, hit = red, placedShip = greyN 0.5, movingSh
 screenWidth :: Float
 screenWidth = 1500
 screenHeight :: Float
-screenHeight = 700
+screenHeight = (screenWidth - screenDivider) / 2
 
 -- filling between both boards
 screenDivider :: Float
-screenDivider = 100
+screenDivider = 300
 
 --------------------- Solving cellWidth and cellHeight problem ---------------------
+
 
 cellWidth :: Float
 cellWidth  = (screenWidth - screenDivider) * 0.5 / fromIntegral n
@@ -94,11 +95,30 @@ boardAIGrid = boardGrid boardAIPos
 boardUserGrid :: Picture
 boardUserGrid = boardGrid boardUserPos
 
+displayGameStage :: GameStage -> BoardPos -> Picture
+displayGameStage stage ((x1,y1),(x2,y2)) = translate (x2 + 0.15 * screenDivider) (y2 - 0.4 * screenDivider) $ pictures [scale sc sc $ text s]
+                                                    where sc = screenDivider / 1250
+                                                          s = case stage of
+                                                              Placing User  -> "Place ships!"
+                                                              Shooting User -> "Shoot enemy!"
+ 
+displayWinner :: Maybe Player -> BoardPos -> Picture
+displayWinner Nothing _ = Blank
+displayWinner player ((x1,y1),(x2,y2)) = translate (x2 + 0.15 * screenDivider) (y2 - 0.4* screenDivider) $ pictures [scale sc sc $ text s]
+                                         where sc = screenDivider / 1250
+                                               s = case player of
+                                                   Just User -> "You won!"
+                                                   Just AI   -> "You lost!"
+
+displayCurrentRound :: Int -> BoardPos -> Picture
+displayCurrentRound round boardPos@((x1,y1),(x2,y2)) = translate (x2 + 0.15 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
+                                                        where sc = screenDivider / 1250
+
 missToPicture :: Board -> BoardPos -> Picture
 missToPicture board pos = cellsToPicture board pos (Empty Checked) crossPicture
 
 hitsToPicture :: Board -> BoardPos -> Picture
-hitsToPicture board pos = cellsToPicture board pos (Ship Checked) crossPicture
+hitsToPicture board pos = cellsToPicture board pos (Ship Checked) shipPicture
 
 shipsToPicture :: Board -> BoardPos -> Picture
 shipsToPicture board pos = cellsToPicture board pos (Ship NotChecked) shipPicture
@@ -107,21 +127,30 @@ showPlacingShip :: Ships -> Picture
 showPlacingShip [] = Blank
 showPlacingShip ((coord, d, s): xs) = placingShipPicture coord d s 
 
-boardAsRunningPicture :: Board -> Board -> Ships -> Picture
-boardAsRunningPicture userBoard boardAI ships =
+gameAsRunningPicture :: Game -> Picture
+gameAsRunningPicture game =
     pictures [color boardGridColor boardAIGrid,
               color boardGridColor boardUserGrid,
               color boardGridColor $
               color (miss cellColor) $ missToPicture userBoard boardUserPos,
+              if win == Nothing then color white $ displayGameStage stage boardUserPos else Blank,
+              color white $ displayCurrentRound currRound boardUserPos,
+              color white $ displayWinner win boardUserPos,
               color (miss cellColor) $ missToPicture boardAI boardAIPos,
               color (placedShip cellColor) $ shipsToPicture userBoard boardUserPos,
               color (hit cellColor)  $ hitsToPicture userBoard boardUserPos,
               color (hit cellColor)  $ hitsToPicture boardAI boardAIPos,
               color (movingShip cellColor) $ showPlacingShip ships
              ]
+             where userBoard = gameBoardUser game
+                   boardAI = gameBoardAI game
+                   ships = shipsUser game
+                   stage = gameStage game
+                   win = winner game
+                   currRound = currentRound game
 
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))
                           (screenHeight * (-0.5))
                            frame
-        where frame = boardAsRunningPicture (gameBoardUser game) (gameBoardAI game) (shipsUser game)
+        where frame = gameAsRunningPicture game

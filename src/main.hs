@@ -64,7 +64,7 @@ placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBo
 
 listOfBoards :: Int -> StdGen -> Board -> Ships -> [Board]
 listOfBoards 0 gen b ships = []
-listOfBoards n gen b ships = newBoard  : (listOfBoards (n-1) newGen b ships)
+listOfBoards n gen b ships = newBoard  : listOfBoards (n-1) newGen b ships
                            where (newBoard, newGen) = placeMultipleShipsAI gen b ships 
 
 -- window specifications

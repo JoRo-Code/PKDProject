@@ -20,21 +20,38 @@ type ShipSize    = Int
 -- AI-types
 type ShootList = [(CellCoord,Cell)]
 type Stack = [(CellCoord,Cell)]
+type AIHits = Board
+
 
 {- cellCoord: starting coord of ship,
   Direction: continuing right or down,
   ShipSize: length of the ship
 -}
-type Ships = [(CellCoord, Direction, ShipSize)]
+
+type Ship = (CellCoord, Direction, ShipSize)
+type Ships = [Ship]
+
+carrier :: Ship
+carrier = ((0,0), Horizontal,5)
+battleShip :: Ship
+battleShip = ((0,3), Vertical,4)
+cruiser :: Ship
+cruiser = ((0,0), Horizontal,3)
+submarine :: Ship
+submarine = ((0,2), Vertical,3)
+destroyer :: Ship
+destroyer = ((0,0), Horizontal,2)
 
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
                    gameBoardsAI  :: [Board],
+                   hitsAI        :: AIHits,
                    gameStage     :: GameStage,
                    shipsUser     :: Ships,
                    stackAI       :: Stack,
                    winner        :: Maybe Player,
-                   gen           :: StdGen
+                   gen           :: StdGen,
+                   currentRound  :: Int
                  } deriving (Show, Eq)
 
 n :: BoardSize
@@ -45,16 +62,17 @@ initBoard :: Board
 initBoard = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
             where boardIndex = ((0, 0), (n - 1, n - 1)) 
 
-
 initShips :: Ships
-initShips = [((0,4), Vertical, 5),((0,4), Vertical, 4),((0,4), Vertical, 3),((0,4), Vertical, 3),((0,4), Vertical, 2)]--[((0, 0), Horizontal, 5), ((0, 3), Vertical, 4), ((0, 0), Horizontal, 3), ((0, 1), Vertical, 2)]
+initShips = [carrier, battleShip, cruiser, submarine, destroyer]--[((0, 0), Horizontal, 5), ((0, 3), Vertical, 4), ((0, 0), Horizontal, 3), ((0, 1), Vertical, 2)]
 
 initGame :: Game
-initGame = Game { gameBoardUser = initBoard, --array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Ship NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)],
-                  gameBoardAI   = initBoard, --head gameBoardsAI,
+initGame = Game { gameBoardUser = initBoard,
+                  gameBoardAI   = initBoard, 
+                  hitsAI        = initBoard,
                   gameStage     = Placing User,
                   shipsUser     = initShips,
                   stackAI       = [],
                   winner        = Nothing,
-                  gen           = mkStdGen 100
+                  gen           = mkStdGen 100,
+                  currentRound  = 1
                 }
