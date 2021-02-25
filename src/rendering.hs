@@ -8,14 +8,16 @@ boardGridColor = makeColorI 255 255 255 255
 
 type BoardPos = (ScreenCoord, ScreenCoord)
 
-data GameColor = CellColor {miss :: Color, 
-                            hit  :: Color, 
-                            placedShip :: Color,
-                            movingShip :: Color}
-                 | BoardColor {grid :: Color}
-
-cellColor :: GameColor
-cellColor = CellColor {miss = white, hit = red, placedShip = greyN 0.5, movingShip = greyN 0.7}
+textColor :: Color
+textColor = white
+missColor :: Color
+missColor = white
+hitColor :: Color
+hitColor = red
+shipColor :: Color
+shipColor = greyN 0.5
+movShipColor :: Color
+movShipColor = greyN 0.7
 
 
 screenWidth :: Float
@@ -64,10 +66,10 @@ crossPicture  = pictures [ rotate 45 $ rectangleSolid length thickness
 shipPicture :: Picture
 shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
                   
-placingShipPicture :: CellCoord -> Direction -> ShipSize -> Picture
-placingShipPicture (c, r) Horizontal s =  translate (cellWidth * (0.5 * fromIntegral s + fromIntegral c)) (cellHeight * (0.5 + fromIntegral r)) 
+movingShipPicture :: CellCoord -> Direction -> ShipSize -> Picture
+movingShipPicture (c, r) Horizontal s =  translate (cellWidth * (0.5 * fromIntegral s + fromIntegral c)) (cellHeight * (0.5 + fromIntegral r)) 
                                           (pictures [ rectangleSolid (cellWidth * fromIntegral s) cellHeight])
-placingShipPicture (c, r) Vertical s   =  translate (cellWidth * (fromIntegral c + 0.5)) (cellHeight * (1 + fromIntegral r - 0.5 * fromIntegral s)) 
+movingShipPicture (c, r) Vertical s   =  translate (cellWidth * (fromIntegral c + 0.5)) (cellHeight * (1 + fromIntegral r - 0.5 * fromIntegral s)) 
                                           (pictures [ rotate 90 $ rectangleSolid (cellWidth * fromIntegral s) cellHeight])                        
 
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
@@ -111,8 +113,17 @@ displayWinner player ((x1,y1),(x2,y2)) = translate (x2 + 0.15 * screenDivider) (
                                                    Just AI   -> "You lost!"
 
 displayCurrentRound :: Int -> BoardPos -> Picture
-displayCurrentRound round boardPos@((x1,y1),(x2,y2)) = translate (x2 + 0.15 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
+displayCurrentRound round ((x1,y1),(x2,y2)) = translate (x2 + 0.15 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
                                                         where sc = screenDivider / 1250
+
+displayUserStats :: ((Player, Int), (Player, Int)) -> BoardPos -> Picture
+displayUserStats ((user, n), _) ((x1,y1),(x2,y2)) = translate (x2 + 0.15 * screenDivider) (y2 - 0.7 * screenDivider) $ pictures [scale sc sc $ text $ "User wins: " ++ show n]
+                                                        where sc = screenDivider / 1250
+                                                              
+displayAIstats :: ((Player, Int), (Player, Int)) -> BoardPos -> Picture
+displayAIstats (_, (ai, n)) ((x1,y1),(x2,y2)) = translate (x2 + 0.15 * screenDivider) (y2 - 0.85 * screenDivider) $ pictures [scale sc sc $ text $ "AI wins: " ++ show n]
+                                                        where sc = screenDivider / 1250
+                                                              
 
 missToPicture :: Board -> BoardPos -> Picture
 missToPicture board pos = cellsToPicture board pos (Empty Checked) crossPicture
@@ -125,22 +136,24 @@ shipsToPicture board pos = cellsToPicture board pos (Ship NotChecked) shipPictur
 
 showPlacingShip :: Ships -> Picture
 showPlacingShip [] = Blank
-showPlacingShip ((coord, d, s): xs) = placingShipPicture coord d s 
+showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s 
 
 gameAsRunningPicture :: Game -> Picture
 gameAsRunningPicture game =
     pictures [color boardGridColor boardAIGrid,
               color boardGridColor boardUserGrid,
               color boardGridColor $
-              color (miss cellColor) $ missToPicture userBoard boardUserPos,
+              color missColor $ missToPicture userBoard boardUserPos,
               if win == Nothing then color white $ displayGameStage stage boardUserPos else Blank,
-              color white $ displayCurrentRound currRound boardUserPos,
-              color white $ displayWinner win boardUserPos,
-              color (miss cellColor) $ missToPicture boardAI boardAIPos,
-              color (placedShip cellColor) $ shipsToPicture userBoard boardUserPos,
-              color (hit cellColor)  $ hitsToPicture userBoard boardUserPos,
-              color (hit cellColor)  $ hitsToPicture boardAI boardAIPos,
-              color (movingShip cellColor) $ showPlacingShip ships
+              color textColor $ displayCurrentRound currRound boardUserPos,
+              color textColor $ displayWinner win boardUserPos,
+              color textColor $ displayUserStats winStats boardUserPos,
+              color textColor $ displayAIstats winStats boardUserPos,
+              color missColor $ missToPicture boardAI boardAIPos,
+              color shipColor $ shipsToPicture userBoard boardUserPos,
+              color hitColor  $ hitsToPicture userBoard boardUserPos,
+              color hitColor  $ hitsToPicture boardAI boardAIPos,
+              color movShipColor  $ showPlacingShip ships
              ]
              where userBoard = gameBoardUser game
                    boardAI = gameBoardAI game
@@ -148,6 +161,7 @@ gameAsRunningPicture game =
                    stage = gameStage game
                    win = winner game
                    currRound = currentRound game
+                   winStats = stats game
 
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))

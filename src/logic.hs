@@ -48,16 +48,24 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
                         = game {gameBoardAI = shotAIboard, 
                                 gameBoardUser = shotUserBoard,
                                 stackAI = updatedAIstack,
-                                winner = foo shotUserBoard shotAIboard,
-                                gen = newGen
+                                winner = checkWinner,
+                                gen = newGen,
+                                stats = newStats
                                 } 
                        | otherwise = game
                        where shotAIboard = checkCell (gameBoardAI game) coord
-                             winCheck = isWinner shotUserBoard
+                             newStats = updateStats (stats game) checkWinner
+                             checkWinner = checkWin shotUserBoard shotAIboard
                              ((shotUserBoard, updatedAIstack, updatedHits), newGen) = aiShoot (gameBoardUser game, stackAI game, hitsAI game) (gen game)
 
-foo :: Board -> Board -> Maybe Player
-foo boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
+updateStats :: ((Player, Int), (Player, Int)) -> Maybe Player -> ((Player, Int), (Player, Int))
+updateStats s@((user, n1), (ai, n2)) player = case player of 
+                                         Just User -> ((user, n1 + 1), (ai, n2))
+                                         Just AI   -> ((user, n1), (ai, n2 + 1))
+                                         _         -> s
+
+checkWin :: Board -> Board -> Maybe Player
+checkWin boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
                              (True, True)  -> Just User
                              (True, False) -> Just AI
                              (False, True) -> Just User
@@ -156,7 +164,8 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
          (_, Shooting User) -> initGame {gameBoardAI = head $ gameBoardsAI game
                                         , gameBoardsAI = tail $ gameBoardsAI game
                                         , gen = gen game,
-                                        currentRound = currentRound game + 1
+                                        currentRound = currentRound game + 1,
+                                        stats = stats game
                                         } 
          _ -> game
 eventHandler _ game = game 
