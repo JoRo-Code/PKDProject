@@ -88,6 +88,13 @@ main = do
        gen <- getStdGen
        let (initGameBoardAI, newGen) =  placeMultipleShipsAI gen (gameBoardAI initGame) initShips
        let aiBoards = listOfBoards 1000 gen initBoard initShips
-       play window backgroundColor fps initGame {gameBoardAI = head aiBoards, gameBoardsAI = tail aiBoards, gen = gen} drawGame eventHandler animationFunc
+       play 
+              window 
+              backgroundColor 
+              fps 
+              initGame {gameBoardAI = head aiBoards, gameBoardsAI = tail aiBoards, gen = gen} 
+              drawGame 
+              eventHandler 
+              animationFunc
 
 
