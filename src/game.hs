@@ -51,7 +51,8 @@ data Game = Game { gameBoardUser :: Board ,
                    stackAI       :: Stack,
                    winner        :: Maybe Player,
                    gen           :: StdGen,
-                   currentRound  :: Int
+                   currentRound  :: Int,
+                   stats         :: ((Player, Int), (Player, Int))
                  } deriving (Show, Eq)
 
 n :: BoardSize
@@ -63,7 +64,7 @@ initBoard = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked
             where boardIndex = ((0, 0), (n - 1, n - 1)) 
 
 initShips :: Ships
-initShips = [carrier, battleShip, cruiser, submarine, destroyer]--[((0, 0), Horizontal, 5), ((0, 3), Vertical, 4), ((0, 0), Horizontal, 3), ((0, 1), Vertical, 2)]
+initShips = [carrier, battleShip, cruiser, submarine, destroyer]
 
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard,
@@ -74,5 +75,6 @@ initGame = Game { gameBoardUser = initBoard,
                   stackAI       = [],
                   winner        = Nothing,
                   gen           = mkStdGen 100,
-                  currentRound  = 1
+                  currentRound  = 1,
+                  stats         = ((User, 0), (AI, 0))
                 }
