@@ -31,6 +31,14 @@ type AIHits = Board
 type Ship = (CellCoord, Direction, ShipSize)
 type Ships = [Ship]
 
+
+type Radius = Float
+type Pos = (Float, Float)
+type Derivative = Float
+
+type Radar = (Radius, Radius, Radius, Radius, Radius)
+
+
 carrier :: Ship
 carrier = ((0,0), Horizontal,5)
 battleShip :: Ship
@@ -43,11 +51,7 @@ destroyer :: Ship
 destroyer = ((0,0), Horizontal,2)
 
 
-type Radius = Float
 
-type Pos = (Float, Float)
-
-type Derivative = Float
 
 
 screenWidth :: Float
@@ -88,8 +92,10 @@ data Game = Game { gameBoardUser :: Board ,
                    gen           :: StdGen,
                    currentRound  :: Int,
                    stats         :: ((Player, Int), (Player, Int)),
+                   -- Animation
                    -- radius, position of centre of wave, end radius of wave, derivative, showBool
-                   shootAnimation :: (Radius, Pos, Radius, Derivative, Bool)
+                   shootAnimation :: (Radius, Pos, Radius, Derivative, Bool),
+                   radarAnimation :: Radar
                  } deriving (Show, Eq)
 
 n :: BoardSize
@@ -114,5 +120,8 @@ initGame = Game { gameBoardUser = initBoard,
                   gen           = mkStdGen 100,
                   currentRound  = 1,
                   stats         = ((User, 0), (AI, 0)),
-                  shootAnimation = (startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False)
+
+                  -- Animation
+                  shootAnimation = (startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
+                  radarAnimation = (1, 2, 3, 4, 5)
                 }

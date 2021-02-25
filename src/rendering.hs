@@ -19,10 +19,10 @@ shipColor = greyN 0.5
 movShipColor :: Color
 movShipColor = greyN 0.7
 radarColor :: Color
-radarColor = red --makeColorI 0 100 0 255
+radarColor = makeColorI 0 100 0 255
 
--- thickness of cirle
-thickness = 10
+radarThickness = 3
+
 
 
 --------------------- Solving cellWidth and cellHeight problem ---------------------
@@ -57,11 +57,24 @@ movingShipPicture (c, r) Vertical s   =  translate (cellWidth * (fromIntegral c 
                                           (pictures [ rotate 90 $ rectangleSolid (cellWidth * fromIntegral s) cellHeight])                        
 
 explosionPicture :: Radius -> Picture
-explosionPicture r = thickCircle r thickness
+explosionPicture r = thickCircle r 10
 
 moveExplosion :: Radius -> Pos -> Bool -> Picture 
 moveExplosion _ _ False = Blank
 moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
+
+radarPicture :: Radar -> Picture
+radarPicture (r1, r2, r3, r4, r5) =     
+    translate (screenWidth/2) (screenHeight/2) 
+    (pictures 
+    [
+     thickCircle r1 radarThickness, 
+     thickCircle r2 radarThickness,
+     thickCircle r3 radarThickness, 
+     thickCircle r4 radarThickness,
+     thickCircle r5 radarThickness
+    ]) 
+
 
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
 cellsToPicture board pos c pic =  pictures
@@ -166,7 +179,8 @@ showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s
 
 gameAsRunningPicture :: Game -> Picture
 gameAsRunningPicture game =
-    pictures [color boardGridColor boardAIGrid,
+    pictures [color radarColor $ radarPicture radar,
+              color boardGridColor boardAIGrid,
               color boardGridColor boardUserGrid,
               color boardGridColor $
               color missColor $ missToPicture userBoard boardUserPos,
@@ -184,7 +198,7 @@ gameAsRunningPicture game =
               color hitColor  $ hitsToPicture userBoard boardUserPos,
               color hitColor  $ hitsToPicture boardAI boardAIPos,
               color movShipColor  $ showPlacingShip ships,
-              color radarColor $ moveExplosion r pos b
+              color red $ moveExplosion r pos b
 
              ]
              where userBoard = gameBoardUser game
@@ -195,6 +209,8 @@ gameAsRunningPicture game =
                    currRound = currentRound game
                    winStats = stats game
                    (r, pos,_, _,b) =  shootAnimation game
+                   radar = radarAnimation game
+
 
 
 drawGame :: Game -> Picture

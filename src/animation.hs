@@ -8,14 +8,20 @@ import Game
     also makes sure to change from show to hidden when outside of boundary
 -}
 animationFunc :: Float -> Game -> Game
-animationFunc dt game  = game {shootAnimation = (newRadius r1 d, pos, end, newD d, showExplosion r1 b)} 
-            where 
-                (r1, pos, end, d, b) = shootAnimation game 
+animationFunc dt game  = game {shootAnimation = (newRadiusExplosion r d, pos, end, newD d, showExplosion r b),
+                               radarAnimation = (newRadius r1, newRadius r2, newRadius r3, newRadius r4, newRadius r5)
+                               } 
+            where
+                (r, pos, end, d, b) = shootAnimation game 
+                (r1, r2, r3, r4, r5) = radarAnimation game
                 newD d = d*0.95
-                newRadius r d
+                newRadiusExplosion r d
                             | abs r >= end = 0
                             | otherwise = r + d*dt
                 showExplosion r b 
                                 | abs r >= end = False
-                                | otherwise = b 
+                                | otherwise = b
+                newRadius r 
+                            | abs r >= screenWidth = 0
+                            | otherwise = r + 0.1 + 0.5 * r*dt + r*dt 
 
