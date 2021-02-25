@@ -141,15 +141,11 @@ displayCurrentRound :: Int -> BoardPos -> Picture
 displayCurrentRound round ((x1,y1),(x2,y2)) = translate (x2 + 0.1 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
                                                         where sc = screenDivider / 1100
 
-displayUserStats :: ((Player, Int), (Player, Int)) -> BoardPos -> Picture
-displayUserStats ((user, n), _) ((x1,y1),(x2,y2)) = translate (x2 + 0.1 * screenDivider) (y2 - 0.7 * screenDivider) $ pictures [scale sc sc $ text $ "User wins: " ++ show n]
+displayStats :: ((Player, Int), (Player, Int)) -> BoardPos -> Picture
+displayStats ((user, n1), (ai, n2)) ((x1,y1),(x2,y2)) = pictures [translate (x2 + 0.1 * screenDivider) (y2 - 0.7 * screenDivider) $ pictures [scale sc sc $ text $ "User wins: " ++ show n1], 
+                                                                  translate (x2 + 0.1 * screenDivider) (y2 - 0.85 * screenDivider) $ pictures [scale sc sc $ text $ "AI wins: " ++ show n2]]
                                                         where sc = screenDivider / 1100
                                                               
-displayAIstats :: ((Player, Int), (Player, Int)) -> BoardPos -> Picture
-displayAIstats (_, (ai, n)) ((x1,y1),(x2,y2)) = translate (x2 + 0.1 * screenDivider) (y2 - 0.85 * screenDivider) $ pictures [scale sc sc $ text $ "AI wins: " ++ show n]
-                                                        where sc = screenDivider / 1100
-
-
 
 missToPicture :: Board -> BoardPos -> Picture
 missToPicture board pos = cellsToPicture board pos (Empty Checked) crossPicture
@@ -168,24 +164,22 @@ gameAsRunningPicture :: Game -> Picture
 gameAsRunningPicture game =
     pictures [color boardGridColor boardAIGrid,
               color boardGridColor boardUserGrid,
+              color green $ displayGameName boardUserPos,
               color boardGridColor $
               color missColor $ missToPicture userBoard boardUserPos,
               if win == Nothing then color white $ displayGameStage stage boardUserPos else Blank,
               if win == Nothing then Blank else color white $ displayRestartInstructions boardUserPos,
               if win == Nothing then color white $ displayInstructions stage boardUserPos else Blank,
               if stage == Placing User then color white $ displayPlaceHere boardUserPos else color white $ displayShootHere boardUserPos,
-              color green $ displayGameName boardUserPos,
               color textColor $ displayCurrentRound currRound boardUserPos,
               color textColor $ displayWinner win boardUserPos,
-              color textColor $ displayUserStats winStats boardUserPos,
-              color textColor $ displayAIstats winStats boardUserPos,
+              color textColor $ displayStats winStats boardUserPos,
               color missColor $ missToPicture boardAI boardAIPos,
               color shipColor $ shipsToPicture userBoard boardUserPos,
               color hitColor  $ hitsToPicture userBoard boardUserPos,
               color hitColor  $ hitsToPicture boardAI boardAIPos,
               color movShipColor  $ showPlacingShip ships,
               color radarColor $ moveExplosion r pos b
-
              ]
              where userBoard = gameBoardUser game
                    boardAI = gameBoardAI game
