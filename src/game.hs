@@ -42,6 +42,41 @@ submarine = ((0,2), Vertical,3)
 destroyer :: Ship
 destroyer = ((0,0), Horizontal,2)
 
+
+type Radius = Float
+
+type Pos = (Float, Float)
+
+type Derivative = Float
+
+
+screenWidth :: Float
+screenWidth = 1500
+screenHeight :: Float
+screenHeight = (screenWidth - screenDivider) / 2
+
+-- filling between both boards
+screenDivider :: Float
+screenDivider = 300
+
+--------------------- Solving cellWidth and cellHeight problem ---------------------
+
+
+cellWidth :: Float
+cellWidth  = (screenWidth - screenDivider) * 0.5 / fromIntegral n
+cellHeight :: Float
+cellHeight = screenHeight / fromIntegral n
+boardWidth :: Float
+boardWidth = (screenWidth - screenDivider) / 2
+boardHeight :: Float
+boardHeight = screenHeight
+
+
+
+
+startRadius = 0
+startDerivative = screenWidth/2
+
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
                    gameBoardsAI  :: [Board],
@@ -52,7 +87,9 @@ data Game = Game { gameBoardUser :: Board ,
                    winner        :: Maybe Player,
                    gen           :: StdGen,
                    currentRound  :: Int,
-                   stats         :: ((Player, Int), (Player, Int))
+                   stats         :: ((Player, Int), (Player, Int)),
+                   -- radius, position of centre of wave, end radius of wave, derivative, showBool
+                   shootAnimation :: (Radius, Pos, Radius, Derivative, Bool)
                  } deriving (Show, Eq)
 
 n :: BoardSize
@@ -76,5 +113,6 @@ initGame = Game { gameBoardUser = initBoard,
                   winner        = Nothing,
                   gen           = mkStdGen 100,
                   currentRound  = 1,
-                  stats         = ((User, 0), (AI, 0))
+                  stats         = ((User, 0), (AI, 0)),
+                  shootAnimation = (startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False)
                 }

@@ -18,28 +18,12 @@ shipColor :: Color
 shipColor = greyN 0.5
 movShipColor :: Color
 movShipColor = greyN 0.7
+radarColor :: Color
+radarColor = red --makeColorI 0 100 0 255
 
+-- thickness of cirle
+thickness = 10
 
-screenWidth :: Float
-screenWidth = 1500
-screenHeight :: Float
-screenHeight = (screenWidth - screenDivider) / 2
-
--- filling between both boards
-screenDivider :: Float
-screenDivider = 300
-
---------------------- Solving cellWidth and cellHeight problem ---------------------
-
-
-cellWidth :: Float
-cellWidth  = (screenWidth - screenDivider) * 0.5 / fromIntegral n
-cellHeight :: Float
-cellHeight = screenHeight / fromIntegral n
-boardWidth :: Float
-boardWidth = (screenWidth - screenDivider) / 2
-boardHeight :: Float
-boardHeight = screenHeight
 
 --------------------- Solving cellWidth and cellHeight problem ---------------------
 
@@ -71,6 +55,13 @@ movingShipPicture (c, r) Horizontal s =  translate (cellWidth * (0.5 * fromInteg
                                           (pictures [ rectangleSolid (cellWidth * fromIntegral s) cellHeight])
 movingShipPicture (c, r) Vertical s   =  translate (cellWidth * (fromIntegral c + 0.5)) (cellHeight * (1 + fromIntegral r - 0.5 * fromIntegral s)) 
                                           (pictures [ rotate 90 $ rectangleSolid (cellWidth * fromIntegral s) cellHeight])                        
+
+explosionPicture :: Radius -> Picture
+explosionPicture r = thickCircle r thickness
+
+moveExplosion :: Radius -> Pos -> Bool -> Picture 
+moveExplosion _ _ False = Blank
+moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
 
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
 cellsToPicture board pos c pic =  pictures
@@ -192,7 +183,9 @@ gameAsRunningPicture game =
               color shipColor $ shipsToPicture userBoard boardUserPos,
               color hitColor  $ hitsToPicture userBoard boardUserPos,
               color hitColor  $ hitsToPicture boardAI boardAIPos,
-              color movShipColor  $ showPlacingShip ships
+              color movShipColor  $ showPlacingShip ships,
+              color radarColor $ moveExplosion r pos b
+
              ]
              where userBoard = gameBoardUser game
                    boardAI = gameBoardAI game
@@ -201,6 +194,8 @@ gameAsRunningPicture game =
                    win = winner game
                    currRound = currentRound game
                    winStats = stats game
+                   (r, pos,_, _,b) =  shootAnimation game
+
 
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))

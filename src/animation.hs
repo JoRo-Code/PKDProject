@@ -1,72 +1,14 @@
-import Graphics.Gloss
-import Graphics.Gloss.Interface.Pure.Game
+module Animation where
 
-screenWidth :: Float
-screenWidth = 1500
-screenHeight :: Float
-screenHeight = 700
-
-window = InWindow "BattleShips" (floor screenWidth, floor screenHeight) (100, 100)
-
-backgroundColor = white
-
-radarColor = makeColorI 0 100 0 255
-thickness = 5
-
-middlePos = (screenWidth/2, screenHeight/2)
-
-startRadius = 0
-startDerivative = screenWidth/2
-
-type Radius = Float
-
--- position on screen
-type Pos = (Float, Float)
-
-type Derivative = Float
-
--- radius, position of centre of wave, end radius of wave, derivative, showBool.
-data Game = Game { shootAnimation :: (Radius, Pos, Radius, Derivative, Bool)}
-    
-initGame = Game { 
-    shootAnimation = (startRadius, middlePos, screenHeight/2, startDerivative, False)
-    } 
+import Game
 
 
--- updating pos
-eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game = game {shootAnimation = (startRadius, mousePos, end, startDerivative, True)}
-    where (_,_, end, _, _) = shootAnimation game
-
-eventHandler _ game = game
-
-
-explosionPicture :: Radius -> Picture
-explosionPicture r = thickCircle r thickness
-
-moveExplosion :: Radius -> Pos -> Bool -> Picture 
-moveExplosion _ _ False = Blank
-moveExplosion r (x,y) _ = translate x y (explosionPicture r)
-
--- rendering
-gameAsRunningPicture :: Game -> Picture
-gameAsRunningPicture game = 
-
-    pictures 
-    [
-    color radarColor $ moveExplosion r pos b
-
-    ]
-    where (r, pos,_, _,b) =  shootAnimation game
-
-drawGame :: Game -> Picture
-drawGame game = {-translate (screenWidth * (-0.5))
-                          (screenHeight * (-0.5))-}
-                           frame
-        where frame = gameAsRunningPicture game
-
--- updating radius
-updateFunc :: Float -> Game -> Game
-updateFunc dt game  = game {shootAnimation = (newRadius r1 d, pos, end, newD d, showExplosion r1 b)} 
+{- animationFunc time game
+    updates radius of shootanimation according to time
+    also makes sure to change from show to hidden when outside of boundary
+-}
+animationFunc :: Float -> Game -> Game
+animationFunc dt game  = game {shootAnimation = (newRadius r1 d, pos, end, newD d, showExplosion r1 b)} 
             where 
                 (r1, pos, end, d, b) = shootAnimation game 
                 newD d = d*0.95
@@ -77,4 +19,3 @@ updateFunc dt game  = game {shootAnimation = (newRadius r1 d, pos, end, newD d, 
                                 | abs r >= end = False
                                 | otherwise = b 
 
-main = play window backgroundColor 30 initGame drawGame eventHandler updateFunc

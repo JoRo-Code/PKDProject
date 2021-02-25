@@ -7,7 +7,7 @@ import System.Random
 import Game         -- initialGame
 import Logic        -- eventHandler
 import Rendering    -- drawGame
-
+import Animation    -- animationFunc
 
 
 {- allCoords
@@ -88,6 +88,6 @@ main = do
        gen <- getStdGen
        let (initGameBoardAI, newGen) =  placeMultipleShipsAI gen (gameBoardAI initGame) initShips
        let aiBoards = listOfBoards 1000 gen initBoard initShips
-       play window backgroundColor fps initGame {gameBoardAI = head aiBoards, gameBoardsAI = tail aiBoards, gen = gen} drawGame eventHandler  (const id)
+       play window backgroundColor fps initGame {gameBoardAI = head aiBoards, gameBoardsAI = tail aiBoards, gen = gen} drawGame eventHandler animationFunc
 
 

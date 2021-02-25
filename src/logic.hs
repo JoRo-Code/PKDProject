@@ -160,13 +160,19 @@ eventHandler (EventKey (Char 'r') Down _ _) game             =
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
 
     case (winner game, gameStage game) of
-         (Nothing, Shooting User) -> playerShoot game $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
+         (Nothing, Shooting User) -> trace ("ShootAnimation: " ++ show (shootAnimation game)) playerShoot game {shootAnimation = (startRadius, mousePos, end, startDerivative, True)} $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
+                                                where (_,_, end, _, _) = shootAnimation game
          (_, Shooting User) -> initGame {gameBoardAI = head $ gameBoardsAI game
                                         , gameBoardsAI = tail $ gameBoardsAI game
                                         , gen = gen game,
                                         currentRound = currentRound game + 1,
                                         stats = stats game
-                                        } 
+                                        
+                                        }
+ 
+
+
+                                        
          _ -> game
 eventHandler _ game = game 
 
