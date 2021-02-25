@@ -9,7 +9,7 @@ import Game
 -}
 animationFunc :: Float -> Game -> Game
 animationFunc dt game  = game {shootAnimation = (newRadiusExplosion r d, pos, end, newD d, showExplosion r b),
-                               radarAnimation = (newRadius r1, newRadius r2, newRadius r3, newRadius r4, newRadius r5, newRadius r5)
+                               radarAnimation = (r1, r2, r3, r4, r5, newAngle angle) --(newRadius r1, newRadius r2, newRadius r3, newRadius r4, newRadius r5, newRadius r5)
                                 } 
             where
                 (r, pos, end, d, b) = shootAnimation game 
@@ -23,5 +23,7 @@ animationFunc dt game  = game {shootAnimation = (newRadiusExplosion r d, pos, en
                                 | otherwise = b
                 newRadius r 
                             | abs r >= screenWidth = 0
-                            | otherwise = r + 0.1 + 0.5 * r*dt + r*dt 
+                            | otherwise = r + 0.1 + 0.5 * r*dt + r*dt
+                newAngle angle | angle == 360.0 = 0.0
+                               | otherwise = angle + 4.0
 

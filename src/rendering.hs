@@ -4,7 +4,7 @@ import Graphics.Gloss
 import Data.Array
 import Game
 
-boardGridColor = makeColorI 255 255 255 255
+boardGridColor = makeColorI 0 100 0 255
 
 type BoardPos = (ScreenCoord, ScreenCoord)
 
@@ -15,11 +15,11 @@ missColor = white
 hitColor :: Color
 hitColor = red
 shipColor :: Color
-shipColor = greyN 0.5
+shipColor = makeColorI 128 128 128 220
 movShipColor :: Color
-movShipColor = greyN 0.7
+movShipColor = makeColorI 128 128 128 200
 radarColor :: Color
-radarColor = makeColorI 0 100 0 255
+radarColor = makeColorI 0 140 0 255
 
 radarThickness = 3
 
@@ -63,19 +63,32 @@ moveExplosion :: Radius -> Pos -> Bool -> Picture
 moveExplosion _ _ False = Blank
 moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
 
-radarPicture :: Radar -> Picture
-radarPicture (r1, r2, r3, r4, r5, angle) = 
-    translate (screenWidth/2) (screenHeight/2) 
+radarPicture :: Radar -> BoardPos ->  Picture
+radarPicture (r1, r2, r3, r4, r5, angle) ((x1,y1),(x2,y2)) =     
+    translate (x1 + (x2 - x1) * 0.5) (y1 + (y2 - y1) * 0.5) 
     (pictures 
     [
+     (rotate angle $ (translate 0 0 $ fadedArc 90 r5 green )),
+     rotate 45.0 angleLine, rotate (-45.0) angleLine,
      thickCircle r1 radarThickness, 
      thickCircle r2 radarThickness,
      thickCircle r3 radarThickness, 
      thickCircle r4 radarThickness,
      thickCircle r5 radarThickness
-     --, rotate angle $ rectangleSolid (2*r5) radarThickness
-    ])
+    ]) 
+    where angleLine = line [(-r5,0) ,(r5, 0)]
 
+
+{- fadedArc angle r color
+    creates a faded arc picture with angle and r of color
+-}
+
+fadedArc :: Int -> Float -> Color -> Picture
+fadedArc angle r c = 
+    pictures
+    $ concatMap (\i -> [color  (makeColorI 0 (i*255 `div` angle) 0 255)  $ rotate (fromIntegral i) $ arcSolid 0 1 r]
+    )
+    [0 .. angle]
 
 
 
@@ -126,8 +139,7 @@ displayGameStage stage ((x1,y1),(x2,y2)) = translate (x2 + 0.1 * screenDivider) 
                                                           s = case stage of
                                                               Placing User  -> "Place ships!"
                                                               Shooting User -> "Shoot enemy!"
-                                                       
- 
+
 displayWinner :: Maybe Player -> BoardPos -> Picture
 displayWinner Nothing _ = Blank
 displayWinner player ((x1,y1),(x2,y2)) = translate (x2 + 0.1 * screenDivider) (y2 - 0.4* screenDivider) $ pictures [scale sc sc $ text s]
@@ -178,11 +190,12 @@ showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s
 
 gameAsRunningPicture :: Game -> Picture
 gameAsRunningPicture game =
-    pictures [color radarColor $ radarPicture radar,
+    pictures [color radarColor $ radarPicture radar boardUserPos,
+              color radarColor $ radarPicture radar boardAIPos,
               color boardGridColor boardAIGrid,
               color boardGridColor boardUserGrid,
               color green $ displayGameName boardUserPos,
-              color boardGridColor $
+              color radarColor $
               color missColor $ missToPicture userBoard boardUserPos,
               if win == Nothing then color white $ displayGameStage stage boardUserPos else Blank,
               if win == Nothing then Blank else color white $ displayRestartInstructions boardUserPos,

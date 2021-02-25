@@ -56,7 +56,7 @@ destroyer = ((0,0), Horizontal,2)
 
 
 screenWidth :: Float
-screenWidth = 1400
+screenWidth = 1500
 screenHeight :: Float
 screenHeight = (screenWidth - screenDivider) / 2
 
@@ -96,7 +96,8 @@ data Game = Game { gameBoardUser :: Board ,
                    -- Animation
                    -- radius, position of centre of wave, end radius of wave, derivative, showBool
                    shootAnimation :: (Radius, Pos, Radius, Derivative, Bool),
-                   radarAnimation :: Radar
+                   radarAnimation :: Radar,
+                   radarAngle          :: Angle
                  } deriving (Show, Eq)
 
 n :: BoardSize
@@ -124,5 +125,9 @@ initGame = Game { gameBoardUser = initBoard,
 
                   -- Animation
                   shootAnimation = (startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
-                  radarAnimation = (1, 2, 3, 4, 5, 0)
+                  radarAnimation = radarInitial,
+                  radarAngle          = 0.0
                 }
+                where radarInitial = (maxRadius - radiusOffet * 4 , maxRadius - radiusOffet * 3, maxRadius - radiusOffet * 2, maxRadius - radiusOffet, maxRadius, 0)
+                      radiusOffet  = (screenHeight / 2) / 5
+                      maxRadius = (screenHeight / 2)
