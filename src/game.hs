@@ -36,7 +36,8 @@ type Radius = Float
 type Pos = (Float, Float)
 type Derivative = Float
 
-type Radar = (Radius, Radius, Radius, Radius, Radius)
+type Angle = Float
+type Radar = (Radius, Radius, Radius, Radius, Radius, Angle)
 
 
 carrier :: Ship
@@ -55,7 +56,7 @@ destroyer = ((0,0), Horizontal,2)
 
 
 screenWidth :: Float
-screenWidth = 1500
+screenWidth = 1400
 screenHeight :: Float
 screenHeight = (screenWidth - screenDivider) / 2
 
@@ -123,5 +124,5 @@ initGame = Game { gameBoardUser = initBoard,
 
                   -- Animation
                   shootAnimation = (startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
-                  radarAnimation = (1, 2, 3, 4, 5)
+                  radarAnimation = (1, 2, 3, 4, 5, 0)
                 }

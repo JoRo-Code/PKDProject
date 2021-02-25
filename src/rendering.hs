@@ -64,7 +64,7 @@ moveExplosion _ _ False = Blank
 moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
 
 radarPicture :: Radar -> Picture
-radarPicture (r1, r2, r3, r4, r5) =     
+radarPicture (r1, r2, r3, r4, r5, angle) = 
     translate (screenWidth/2) (screenHeight/2) 
     (pictures 
     [
@@ -73,7 +73,10 @@ radarPicture (r1, r2, r3, r4, r5) =
      thickCircle r3 radarThickness, 
      thickCircle r4 radarThickness,
      thickCircle r5 radarThickness
-    ]) 
+     --, rotate angle $ rectangleSolid (2*r5) radarThickness
+    ])
+
+
 
 
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
