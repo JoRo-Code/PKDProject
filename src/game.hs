@@ -84,7 +84,6 @@ startDerivative = screenWidth/2
 
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
-                   gameBoardsAI  :: [Board],
                    hitsAI        :: AIHits,
                    gameStage     :: GameStage,
                    shipsUser     :: Ships,

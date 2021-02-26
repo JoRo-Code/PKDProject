@@ -141,42 +141,6 @@ confirmShip game | validShipPlacement (gameBoardUser game) coord s d = (placeShi
 
 ---------------------------- END Moving Ship Picture -----------------
 
-eventHandler :: Event -> Game -> Game
-eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = 
-     case gameStage game of 
-         Placing User -> confirmShip game
-         _            -> game
-
-eventHandler (EventKey (SpecialKey key) Down _ _) game       = 
-    case gameStage game of 
-        Placing User -> trace ("Current gen: " ++ show (gen game)) moveShip game key
-        _            -> game
-
-eventHandler (EventKey (Char 'r') Down _ _) game             = 
-    case gameStage game of 
-         Placing User -> rotateShip game
-         _            -> game
-
-eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
-
-    case (winner game, gameStage game) of
-         (Nothing, Shooting User) -> trace ("ShootAnimation: " ++ show (shootAnimation game)) playerShoot game {shootAnimation = (startRadius, mousePos, end, startDerivative, True)} $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
-                                                where (_,_, end, _, _) = shootAnimation game
-         (_, Shooting User) -> initGame {gameBoardAI = head $ gameBoardsAI game
-                                        , gameBoardsAI = tail $ gameBoardsAI game
-                                        , gen = gen game,
-                                        currentRound = currentRound game + 1,
-                                        stats = stats game
-                                        
-                                        }
- 
-
-
-                                        
-         _ -> game
-eventHandler _ game = game 
-
-
 --------------------- AI --------------------------------
 
 -- Returns column of element in a ShootList
@@ -241,3 +205,103 @@ aiShootAux (b, s@(coord,cell):st, hits)  l | isShip s = (checkCell b coord, remo
 aiShoot :: (Board,Stack, AIHits) -> StdGen -> ((Board, Stack, AIHits), StdGen)
 aiShoot (b,s, hits) gen = (aiShootAux (b,removeChecked $ updateStack s newList, hits) newList,newGen)
                      where (newList, newGen) = filterShootList b gen
+
+
+
+
+
+--- Placing AI
+
+
+{- allCoords
+       RETURNS: all possible cellcoords on board regarding global n
+
+-}
+allCoords :: [CellCoord]
+allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
+
+
+{- findValidDirectionalPlacements board coords ship direction
+       RETURNS: possible coords of ship with direction
+
+-}
+findValidDirectionalPlacements :: Board -> [CellCoord] -> ShipSize ->  Direction -> [(CellCoord, Direction)]
+findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filter (\coord -> validShipPlacement b coord s d) coords
+                 
+
+
+{- findAllValidPlacements board ship 
+       RETURNS: all possible placements of ship on board
+-}
+findAllValidPlacements :: Board -> ShipSize -> [(CellCoord, Direction)]
+findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizontal ++ findValidDirectionalPlacements b allCoords s Vertical 
+
+
+{- randomElement list gen
+    RETURNS: (randomly generated element of list, finalGen)
+-}
+randomElement :: [a] -> StdGen -> (a, StdGen)
+randomElement list gen = (list !! randomInt, newGen)
+                     where range = (0, length list - 1)
+                           (randomInt, newGen) = randomR range gen
+
+{- placeShipAI gen board ship placements
+       updates board with a random placement of ship
+
+-}
+placeShipAI :: StdGen -> Board -> ShipSize -> [(CellCoord, Direction)] -> (Board, StdGen)
+placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
+                             where ((coord , d), newGen) = randomElement placements gen
+
+
+{- placeMultipleShipsAI gen board ships
+       places the ships on random places on the board
+       RETURNS: (generated board, newGen)
+-}
+
+placeMultipleShipsAI :: StdGen -> Board -> Ships -> (Board, StdGen)
+-- VARIANT: length ships
+placeMultipleShipsAI gen b [] = (b, gen)
+placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBoard ships
+                                      where (newBoard, newGen) = placeShipAI gen b s (findAllValidPlacements b s)
+
+listOfBoards :: Int -> StdGen -> Board -> Ships -> [Board]
+listOfBoards 0 gen b ships = []
+listOfBoards n gen b ships = newBoard  : listOfBoards (n-1) newGen b ships
+                           where (newBoard, newGen) = placeMultipleShipsAI gen b ships 
+
+
+
+
+
+-- EventHandler
+
+eventHandler :: Event -> Game -> Game
+eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = 
+     case gameStage game of 
+         Placing User -> confirmShip game
+         _            -> game
+
+eventHandler (EventKey (SpecialKey key) Down _ _) game       = 
+    case gameStage game of 
+        Placing User -> trace ("Current gen: " ++ show (gen game)) moveShip game key
+        _            -> game
+
+eventHandler (EventKey (Char 'r') Down _ _) game             = 
+    case gameStage game of 
+         Placing User -> rotateShip game
+         _            -> game
+
+eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
+
+    case (winner game, gameStage game) of
+         (Nothing, Shooting User) -> playerShoot game {shootAnimation = (startRadius, mousePos, end, startDerivative, True)} $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
+                                                where (_,_, end, _, _) = shootAnimation game
+         (_, Shooting User) -> initGame {gameBoardAI = newBoard
+                                        , gen = newGen
+                                        , currentRound = currentRound game + 1
+                                        , stats = stats game
+                                        }
+                                        where (newBoard, newGen) = placeMultipleShipsAI (gen game) initBoard initShips
+         _ -> game
+eventHandler _ game = game 
