@@ -39,24 +39,27 @@ type Derivative = Float
 type Angle = Float
 type Radar = (Radius, Radius, Radius, Radius, Radius, Angle)
 
-
-carrier :: Ship
-carrier = ((0,0), Horizontal,5)
-battleShip :: Ship
-battleShip = ((0,3), Vertical,4)
-cruiser :: Ship
-cruiser = ((0,0), Horizontal,3)
-submarine :: Ship
-submarine = ((0,2), Vertical,3)
-destroyer :: Ship
-destroyer = ((0,0), Horizontal,2)
-
-
+data Game = Game { gameBoardUser :: Board , 
+                   gameBoardAI   :: Board,
+                   hitsAI        :: AIHits,
+                   gameStage     :: GameStage,
+                   shipsUser     :: Ships,
+                   stackAI       :: Stack,
+                   winner        :: Maybe Player,
+                   gen           :: StdGen,
+                   currentRound  :: Int,
+                   stats         :: ((Player, Int), (Player, Int)),
+                   -- Animation
+                   -- radius, position of centre of wave, end radius of wave, derivative, showBool
+                   shootAnimation :: (Radius, Pos, Radius, Derivative, Bool),
+                   radarAnimation :: Radar,
+                   radarAngle          :: Angle
+                 } deriving (Show, Eq)
 
 
 
 screenWidth :: Float
-screenWidth = 1500
+screenWidth = 1400
 screenHeight :: Float
 screenHeight = (screenWidth - screenDivider) / 2
 
@@ -82,34 +85,44 @@ boardHeight = screenHeight
 startRadius = 0
 startDerivative = screenWidth/2
 
-data Game = Game { gameBoardUser :: Board , 
-                   gameBoardAI   :: Board,
-                   hitsAI        :: AIHits,
-                   gameStage     :: GameStage,
-                   shipsUser     :: Ships,
-                   stackAI       :: Stack,
-                   winner        :: Maybe Player,
-                   gen           :: StdGen,
-                   currentRound  :: Int,
-                   stats         :: ((Player, Int), (Player, Int)),
-                   -- Animation
-                   -- radius, position of centre of wave, end radius of wave, derivative, showBool
-                   shootAnimation :: (Radius, Pos, Radius, Derivative, Bool),
-                   radarAnimation :: Radar,
-                   radarAngle          :: Angle
-                 } deriving (Show, Eq)
+
 
 n :: BoardSize
 n = 10
 
--- Create a new board, a 2d array, where all cells are empty notchecked initially.                                                         
+-- Create a new board, a 2d array, where all cells are empty notchecked initially.   
+
+{- initBoard
+    Creates initial board of n-size with empty cells 
+    PRE: 
+    RETURNS: array of empty cells of size n
+    EXAMPLES: initBoard == array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)]
+                  where n = 2
+-} 
 initBoard :: Board        
 initBoard = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
             where boardIndex = ((0, 0), (n - 1, n - 1)) 
 
+
+carrier :: Ship
+carrier = ((0,0), Horizontal,5)
+battleShip :: Ship
+battleShip = ((0,3), Vertical,4)
+cruiser :: Ship
+cruiser = ((0,0), Horizontal,3)
+submarine :: Ship
+submarine = ((0,2), Vertical,3)
+destroyer :: Ship
+destroyer = ((0,0), Horizontal,2)
+
 initShips :: Ships
 initShips = [carrier, battleShip, cruiser, submarine, destroyer]
 
+
+{- initGame 
+  Creates the initial game
+
+-}
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard,
                   gameBoardAI   = initBoard, 

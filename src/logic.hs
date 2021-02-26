@@ -12,36 +12,185 @@ import Rendering
 import Data.List
 import Debug.Trace
 
+
+---------------------------- Placing ship ----------------------------
+
+offset :: CellCoord -> Direction -> (Col, Row)
+offset (c, r) Vertical = (c, r - 1)
+offset (c, r) Horizontal = (c + 1, r)
+
+placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
+placeShipAux b _ 0 _= b
+placeShipAux b (c, r) s d = placeShipAux (b // [((c, r), Ship NotChecked)]) (offset (c, r) d) (s - 1) d
+
+surroundingCells :: Board -> CellCoord -> ShipSize -> Direction -> [CellCoord]
+surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c..c+s-1]] ++ [(c-1, r)] ++ [(c+s,r)]
+surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1..r]] ++ [(c, r + 1)] ++ [(c, r -s)]                                                   
+
+
 validCoordinates :: CellCoord -> Bool
 validCoordinates  = inRange boardIndex
                     where boardIndex = ((0, 0), (n - 1, n - 1)) 
+
+-- Make sure that no ships can be placed within the surrounding cells of another ship
+followPlacementRules ::  Board -> CellCoord -> ShipSize -> Direction -> Bool
+followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) || b ! coord /= Ship NotChecked) (surroundingCells b coord s d)
 
 endCoordinates :: CellCoord -> ShipSize -> Direction -> CellCoord
 endCoordinates (c, r) s Horizontal = (c + s - 1, r)
 endCoordinates (c, r) s Vertical = (c, r - s + 1)
 
+validShipPlacement :: Board ->  CellCoord -> ShipSize -> Direction -> Bool
+validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d) -- (-1) because the ship part on (r, c) is included
+                                  && validCoordinates (c, r)  
+                                  && followPlacementRules b (c,r) s d
+
+placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
+placeShip game _ 0 _= game
+placeShip game coord s d | validShipPlacement (gameBoardUser game) coord s d  = game {gameBoardUser = placeShipAux (gameBoardUser game) coord s d, shipsUser = tail $ shipsUser game}
+                         | otherwise = game
+
+
+
+
+---------------------------- Moving Ship Picture ---------------------
+
+{- mouseToCell mousePos boardPos
+    calculates current cell from mouseposition
+    RETURNS: the corresponding cellCoordinates for mousePos on a board with boardPos
+
+-}
+mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
+mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth), floor ((y - y1 + boardHeight  * 0.5) / cellHeight ))
+
+
+{- moveShip game key
+    updates the first placing ship's cellCoordinates according to key input
+    RETURNS: If valid position then head of shipsUser game with new coordinates according to key, else game.
+
+-}
+moveShip :: Game -> SpecialKey -> Game
+moveShip game keyDir 
+                     | validCoordinates (endCoordinates newCoord s d)
+                       && validCoordinates newCoord = game {shipsUser = (newCoord, d, s) : rest}
+                     | otherwise = game
+                      where (((c, r), d, s):rest) = shipsUser game
+                            newCoord =  case keyDir of
+                                        KeyLeft  -> (c - 1, r)
+                                        KeyRight -> (c + 1, r)  
+                                        KeyUp    -> (c, r + 1)
+                                        KeyDown  -> (c, r - 1)
+                                        _        -> (c, r)
+
+{- rotateShip game 
+    changes the first placing ship's direction
+    RETURNS: If opposite direction is valid then head of shipsUser game with opposite direction, else game.
+
+-}
+rotateShip :: Game -> Game
+rotateShip game 
+                | validCoordinates $ endCoordinates coord s newDirection =  game {shipsUser = (coord, newDirection, s) : tail ships}
+                | otherwise = game
+                  where (coord, d, s) = head ships
+                        ships = shipsUser game
+                        newDirection = case d of
+                                      Horizontal -> Vertical
+                                      Vertical   -> Horizontal
+{- confirmShip game
+    puts placing ship on board and changes gameStage if all ships have been placed
+    RETURNS: -------
+-}
+confirmShip :: Game -> Game
+confirmShip game | validShipPlacement (gameBoardUser game) coord s d = (placeShip game coord s d) {gameStage = newGameStage}
+                 | otherwise = game
+                   where (coord, d, s) = head ships
+                         ships = shipsUser game
+                         newGameStage = if null $ tail ships then Shooting User else Placing User
+
+
+
+
+
+---------------------------- Shooting Ship ------------------------
+
+{- getCell board coord
+    extracts board contents on a specific column and row
+    PRE: coord in board
+    RETURNS: content of coord in board
+
+-}
 getCell :: Board -> CellCoord -> Cell
 getCell b c = b ! c
 
--- PRE: coordinates are in range, cell is NotChecked
--- Changes the state of a cell to checked
+
+{- checkCell board coord
+    Changes the state of a cell to checked
+    PRE: coord in board
+    RETURNS: if coord == unchecked then board with checked coord, else board.
+
+-}
 checkCell :: Board -> CellCoord -> Board
 checkCell b (c, r) = case getCell b (c, r) of
                       Empty NotChecked -> b // [((c, r), Empty Checked)]   
                       Ship NotChecked  -> b // [((c, r), Ship Checked)]
                       _ -> b
 
--- PRE: coordinates are in range
--- returns the state of the cell at coordinates
+
+{- getState board coord
+    gets the state of a cell
+    PRE: coord in board
+    RETURNS: state of coord in board
+-}
 getState :: Board -> CellCoord -> SquareState
 getState b c =  case getCell b c of
                      Empty s -> s
                      Ship s -> s
 
 -- returns True if a cell is Checked, else False
+
+{- isChecked board coord
+    evaluates if coord is checked
+    PRE: coord in board
+    RETURNS: True if coord == checked, else False.
+-}
 isChecked :: Board -> CellCoord -> Bool
 isChecked b coord = s == Checked
         where s = getState b coord
+
+
+
+{- isWinner board 
+    checks if board has won
+    RETURNS: if all ships are checked on board
+-}
+isWinner :: Board -> Bool
+isWinner b = not $ any (\cell -> cell == Ship NotChecked) b
+
+{- checkWin boardUser boardAI 
+    checks if user or AI won
+    RETURNS: the player who won first
+-}
+checkWin :: Board -> Board -> Maybe Player
+checkWin boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
+                             (True, True)  -> Just User
+                             (True, False) -> Just AI
+                             (False, True) -> Just User
+                             (_, _)        -> Nothing
+{- updateStats (statsUser, statsAI) winner
+    changes stats according to last winner
+    RETURNS: (statsUser, statsAI) updated according to winner
+
+-}
+updateStats :: ((Player, Int), (Player, Int)) -> Maybe Player -> ((Player, Int), (Player, Int))
+updateStats s@((user, n1), (ai, n2)) player = case player of 
+                                         Just User -> ((user, n1 + 1), (ai, n2))
+                                         Just AI   -> ((user, n1), (ai, n2 + 1))
+                                         _         -> s
+
+{- playerShoot game coord 
+    shoots the coord for user. Calls AI to shoot. Updates game accordingly
+    REUTRNS: game after user and AI have shot. 
+-}
 
 playerShoot :: Game -> CellCoord -> Game
 playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI game) coord)
@@ -58,90 +207,68 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
                              checkWinner = checkWin shotUserBoard shotAIboard
                              ((shotUserBoard, updatedAIstack, updatedHits), newGen) = aiShoot (gameBoardUser game, stackAI game, hitsAI game) (gen game)
 
-updateStats :: ((Player, Int), (Player, Int)) -> Maybe Player -> ((Player, Int), (Player, Int))
-updateStats s@((user, n1), (ai, n2)) player = case player of 
-                                         Just User -> ((user, n1 + 1), (ai, n2))
-                                         Just AI   -> ((user, n1), (ai, n2 + 1))
-                                         _         -> s
-
-checkWin :: Board -> Board -> Maybe Player
-checkWin boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
-                             (True, True)  -> Just User
-                             (True, False) -> Just AI
-                             (False, True) -> Just User
-                             (_, _)        -> Nothing
-
-isWinner :: Board -> Bool
-isWinner b = not $ any (\cell -> cell == Ship NotChecked) b
+---------------------------- Placing AI ------------------------
 
 
----------------------------- Placing ship ----------------------------
-placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
-placeShip game _ 0 _= game
-placeShip game coord s d | validShipPlacement (gameBoardUser game) coord s d  = game {gameBoardUser = placeShipAux (gameBoardUser game) coord s d, shipsUser = tail $ shipsUser game}
-                         | otherwise = game
+{- allCoords
+       RETURNS: all possible cellcoords on board regarding global n
 
-placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
-placeShipAux b _ 0 _= b
-placeShipAux b (c, r) s d = placeShipAux (b // [((c, r), Ship NotChecked)]) (offset (c, r) d) (s - 1) d
-
-validShipPlacement :: Board ->  CellCoord -> ShipSize -> Direction -> Bool
-validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d) -- (-1) because the ship part on (r, c) is included
-                                  && validCoordinates (c, r)  
-                                  && followPlacementRules b (c,r) s d
-
--- Make sure that no ships can be placed within the surrounding cells of another ship
-followPlacementRules ::  Board -> CellCoord -> ShipSize -> Direction -> Bool
-followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) || b ! coord /= Ship NotChecked) (surroundingCells b coord s d)
-
-surroundingCells :: Board -> CellCoord -> ShipSize -> Direction -> [CellCoord]
-surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c..c+s-1]] ++ [(c-1, r)] ++ [(c+s,r)]
-surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1..r]] ++ [(c, r + 1)] ++ [(c, r -s)]                                                   
- 
-offset :: CellCoord -> Direction -> (Col, Row)
-offset (c, r) Vertical = (c, r - 1)
-offset (c, r) Horizontal = (c + 1, r)
-
----------------------------- END Placing ship ------------------------
----------------------------- Moving Ship Picture ---------------------
-
-mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
-mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth), floor ((y - y1 + boardHeight  * 0.5) / cellHeight ))
-                                                                       
-moveShip :: Game -> SpecialKey -> Game
-moveShip game keyDir 
-                     | validCoordinates (endCoordinates newCoord s d)
-                       && validCoordinates newCoord = game {shipsUser = (newCoord, d, s) : tail (shipsUser game)}
-                     | otherwise = game
-                      where ((c, r), d, s) = head $ shipsUser game
-                            newCoord =  case keyDir of
-                                        KeyLeft  -> (c - 1, r)
-                                        KeyRight -> (c + 1, r)  
-                                        KeyUp    -> (c, r + 1)
-                                        KeyDown  -> (c, r - 1)
-                                        _        -> (c, r)
-
-rotateShip :: Game -> Game
-rotateShip game 
-                | validCoordinates $ endCoordinates coord s newDirection =  game {shipsUser = (coord, newDirection, s) : tail ships}
-                | otherwise = game
-                  where (coord, d, s) = head ships
-                        ships = shipsUser game
-                        newDirection = case d of
-                                      Horizontal -> Vertical
-                                      Vertical   -> Horizontal
-
-confirmShip :: Game -> Game
-confirmShip game | validShipPlacement (gameBoardUser game) coord s d = (placeShip game coord s d) {gameStage = newGameStage}
-                 | otherwise = game
-                   where (coord, d, s) = head ships
-                         ships = shipsUser game
-                         newGameStage = if null $ tail ships then Shooting User else Placing User
+-}
+allCoords :: [CellCoord]
+allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
 
 
----------------------------- END Moving Ship Picture -----------------
+{- findValidDirectionalPlacements board coords ship direction
+       RETURNS: possible coords of ship with direction
 
---------------------- AI --------------------------------
+-}
+findValidDirectionalPlacements :: Board -> [CellCoord] -> ShipSize ->  Direction -> [(CellCoord, Direction)]
+findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filter (\coord -> validShipPlacement b coord s d) coords
+                 
+
+
+{- findAllValidPlacements board ship 
+       RETURNS: all possible placements of ship on board
+-}
+findAllValidPlacements :: Board -> ShipSize -> [(CellCoord, Direction)]
+findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizontal ++ findValidDirectionalPlacements b allCoords s Vertical 
+
+
+{- randomElement list gen
+    RETURNS: (randomly generated element of list, finalGen)
+-}
+randomElement :: [a] -> StdGen -> (a, StdGen)
+randomElement list gen = (list !! randomInt, newGen)
+                     where range = (0, length list - 1)
+                           (randomInt, newGen) = randomR range gen
+
+{- placeShipAI gen board ship placements
+       updates board with a random placement of ship
+
+-}
+placeShipAI :: StdGen -> Board -> ShipSize -> [(CellCoord, Direction)] -> (Board, StdGen)
+placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
+                             where ((coord , d), newGen) = randomElement placements gen
+
+
+{- placeMultipleShipsAI gen board ships
+       places the ships on random places on the board
+       RETURNS: (generated board, newGen)
+-}
+
+placeMultipleShipsAI :: StdGen -> Board -> Ships -> (Board, StdGen)
+-- VARIANT: length ships
+placeMultipleShipsAI gen b [] = (b, gen)
+placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBoard ships
+                                      where (newBoard, newGen) = placeShipAI gen b s (findAllValidPlacements b s)
+
+listOfBoards :: Int -> StdGen -> Board -> Ships -> [Board]
+listOfBoards 0 gen b ships = []
+listOfBoards n gen b ships = newBoard  : listOfBoards (n-1) newGen b ships
+                           where (newBoard, newGen) = placeMultipleShipsAI gen b ships 
+
+
+--------------------- Shoot AI --------------------------------
 
 -- Returns column of element in a ShootList
 getCol :: (CellCoord,Cell) -> Col
@@ -209,72 +336,7 @@ aiShoot (b,s, hits) gen = (aiShootAux (b,removeChecked $ updateStack s newList, 
 
 
 
-
---- Placing AI
-
-
-{- allCoords
-       RETURNS: all possible cellcoords on board regarding global n
-
--}
-allCoords :: [CellCoord]
-allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
-
-
-{- findValidDirectionalPlacements board coords ship direction
-       RETURNS: possible coords of ship with direction
-
--}
-findValidDirectionalPlacements :: Board -> [CellCoord] -> ShipSize ->  Direction -> [(CellCoord, Direction)]
-findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filter (\coord -> validShipPlacement b coord s d) coords
-                 
-
-
-{- findAllValidPlacements board ship 
-       RETURNS: all possible placements of ship on board
--}
-findAllValidPlacements :: Board -> ShipSize -> [(CellCoord, Direction)]
-findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizontal ++ findValidDirectionalPlacements b allCoords s Vertical 
-
-
-{- randomElement list gen
-    RETURNS: (randomly generated element of list, finalGen)
--}
-randomElement :: [a] -> StdGen -> (a, StdGen)
-randomElement list gen = (list !! randomInt, newGen)
-                     where range = (0, length list - 1)
-                           (randomInt, newGen) = randomR range gen
-
-{- placeShipAI gen board ship placements
-       updates board with a random placement of ship
-
--}
-placeShipAI :: StdGen -> Board -> ShipSize -> [(CellCoord, Direction)] -> (Board, StdGen)
-placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
-                             where ((coord , d), newGen) = randomElement placements gen
-
-
-{- placeMultipleShipsAI gen board ships
-       places the ships on random places on the board
-       RETURNS: (generated board, newGen)
--}
-
-placeMultipleShipsAI :: StdGen -> Board -> Ships -> (Board, StdGen)
--- VARIANT: length ships
-placeMultipleShipsAI gen b [] = (b, gen)
-placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBoard ships
-                                      where (newBoard, newGen) = placeShipAI gen b s (findAllValidPlacements b s)
-
-listOfBoards :: Int -> StdGen -> Board -> Ships -> [Board]
-listOfBoards 0 gen b ships = []
-listOfBoards n gen b ships = newBoard  : listOfBoards (n-1) newGen b ships
-                           where (newBoard, newGen) = placeMultipleShipsAI gen b ships 
-
-
-
-
-
--- EventHandler
+--------------------- EventHandler --------------------------------
 
 eventHandler :: Event -> Game -> Game
 eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = 
