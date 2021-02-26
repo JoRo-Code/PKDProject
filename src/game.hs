@@ -16,6 +16,9 @@ type ScreenCoord = (Float, Float)
 type Board       = Array (Col, Row) Cell
 type BoardSize   = Int
 type ShipSize    = Int
+type Round       = Int
+type Score       = Int
+type Stats       = ((Player, Score), (Player, Score))
 
 -- AI-types
 type ShootList = [(CellCoord,Cell)]
@@ -37,7 +40,7 @@ type Pos = (Float, Float)
 type Derivative = Float
 
 type Angle = Float
-type Radar = (Radius, Radius, Radius, Radius, Radius, Angle)
+type Radar = ([Radius], Angle)
 
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
@@ -47,8 +50,8 @@ data Game = Game { gameBoardUser :: Board ,
                    stackAI       :: Stack,
                    winner        :: Maybe Player,
                    gen           :: StdGen,
-                   currentRound  :: Int,
-                   stats         :: ((Player, Int), (Player, Int)),
+                   currentRound  :: Round,
+                   stats         :: Stats,
                    -- Animation
                    -- radius, position of centre of wave, end radius of wave, derivative, showBool
                    shootAnimation :: (Radius, Pos, Radius, Derivative, Bool),
@@ -140,6 +143,6 @@ initGame = Game { gameBoardUser = initBoard,
                   radarAnimation = radarInitial,
                   radarAngle          = 0.0
                 }
-                where radarInitial = (maxRadius - radiusOffet * 4 , maxRadius - radiusOffet * 3, maxRadius - radiusOffet * 2, maxRadius - radiusOffet, maxRadius, 0)
+                where radarInitial = ([maxRadius - i * radiusOffet | i <- [0..4]], 0)
                       radiusOffet  = (screenHeight / 2) / 5
-                      maxRadius = (screenHeight / 2)
+                      maxRadius = screenHeight / 2
