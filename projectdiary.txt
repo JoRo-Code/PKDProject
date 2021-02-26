@@ -64,3 +64,8 @@ Tuesday 2021-02-23 - 1 hour
  - made game replayable
  - started working on new addition to make AI smarter
  - planned what everyone should work on
+
+ Thursday 2021-02-25 - 1 hour
+ - meeting with Ghafour
+ - went through everything that has to be done
+ - changed graphics
