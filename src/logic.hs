@@ -13,37 +13,35 @@ import Data.List
 import Debug.Trace
 
 
----------------------------- Placing ship ----------------------------
-
-offset :: CellCoord -> Direction -> (Col, Row)
-offset (c, r) Vertical = (c, r - 1)
-offset (c, r) Horizontal = (c + 1, r)
-
-placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
-placeShipAux b _ 0 _= b
-placeShipAux b (c, r) s d = placeShipAux (b // [((c, r), Ship NotChecked)]) (offset (c, r) d) (s - 1) d
-
-surroundingCells :: Board -> CellCoord -> ShipSize -> Direction -> [CellCoord]
-surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c..c+s-1]] ++ [(c-1, r)] ++ [(c+s,r)]
-surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1..r]] ++ [(c, r + 1)] ++ [(c, r -s)]                                                   
-
-
 validCoordinates :: CellCoord -> Bool
 validCoordinates  = inRange boardIndex
                     where boardIndex = ((0, 0), (n - 1, n - 1)) 
-
--- Make sure that no ships can be placed within the surrounding cells of another ship
-followPlacementRules ::  Board -> CellCoord -> ShipSize -> Direction -> Bool
-followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) || b ! coord /= Ship NotChecked) (surroundingCells b coord s d)
 
 endCoordinates :: CellCoord -> ShipSize -> Direction -> CellCoord
 endCoordinates (c, r) s Horizontal = (c + s - 1, r)
 endCoordinates (c, r) s Vertical = (c, r - s + 1)
 
+
+---------------------------- Placing ship ----------------------------
+
+surroundingCells :: Board -> CellCoord -> ShipSize -> Direction -> [CellCoord]
+surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c..c+s-1]] ++ [(c-1, r)] ++ [(c+s,r)]
+surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1..r]] ++ [(c, r + 1)] ++ [(c, r -s)]                  
+
+-- Make sure that no ships can be placed within the surrounding cells of another ship
+followPlacementRules ::  Board -> CellCoord -> ShipSize -> Direction -> Bool
+followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) || b ! coord /= Ship NotChecked) (surroundingCells b coord s d)
+
+
 validShipPlacement :: Board ->  CellCoord -> ShipSize -> Direction -> Bool
 validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d) -- (-1) because the ship part on (r, c) is included
                                   && validCoordinates (c, r)  
                                   && followPlacementRules b (c,r) s d
+
+placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
+placeShipAux b _ 0 _= b
+placeShipAux b (c, r) s Vertical = placeShipAux (b // [((c, r), Ship NotChecked)]) (c, r - 1) (s - 1) Vertical
+placeShipAux b (c, r) s Horizontal = placeShipAux (b // [((c, r), Ship NotChecked)]) (c + 1, r) (s - 1) Horizontal
 
 placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
 placeShip game _ 0 _= game
@@ -267,11 +265,6 @@ placeMultipleShipsAI :: StdGen -> Board -> Ships -> (Board, StdGen)
 placeMultipleShipsAI gen b [] = (b, gen)
 placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBoard ships
                                       where (newBoard, newGen) = placeShipAI gen b s (findAllValidPlacements b s)
-
-listOfBoards :: Int -> StdGen -> Board -> Ships -> [Board]
-listOfBoards 0 gen b ships = []
-listOfBoards n gen b ships = newBoard  : listOfBoards (n-1) newGen b ships
-                           where (newBoard, newGen) = placeMultipleShipsAI gen b ships 
 
 
 --------------------- Shoot AI --------------------------------
