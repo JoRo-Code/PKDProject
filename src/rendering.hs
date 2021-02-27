@@ -108,33 +108,23 @@ boardGrid boardPos@((x1,y1),(x2,y2)) =
       [0.0 .. fromIntegral n]
 
 
-boardAIGrid :: Picture
-boardAIGrid = boardGrid boardAIPos
-
-boardUserGrid :: Picture
-boardUserGrid = boardGrid boardUserPos
-
 
 combineDisplayText :: BoardPos -> GameStage -> Maybe Player -> Round -> Stats -> Picture
 combineDisplayText pos stage winner round stats = pictures [if winner == Nothing then displayGameStage pos stage else Blank, displayWinner pos winner, 
                                                             if winner == Nothing then displayInstructions pos stage else Blank, 
                                                             if winner == Nothing then Blank else displayRestartInstructions pos,
-                                                            if stage == Placing User then displayPlaceHere pos else displayShootHere pos,
+                                                            if stage == Placing User then displayArrowInstruction pos "<---- Place here" 
+                                                            else displayArrowInstruction pos "Shoot here ---->",
                                                             displayCurrentRound pos round, displayStats pos stats ]
 displayGameName :: BoardPos -> Picture
 displayGameName ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y2 - 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 900
                                                           s = "BATTLESHIPS"
 
-displayPlaceHere :: BoardPos -> Picture
-displayPlaceHere ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y1 + 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
+displayArrowInstruction  :: BoardPos -> String -> Picture
+displayArrowInstruction ((x1,y1),(x2,y2)) s = translate (x2 + 0.05 * screenDivider) (y1 + 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 1400
-                                                          s = "<---- Place here"
-
-displayShootHere :: BoardPos -> Picture
-displayShootHere ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y1 + 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
-                                                    where sc = screenDivider / 1400
-                                                          s = "Shoot here ---->"                                                          
+                                                  
 
 displayGameStage :: BoardPos -> GameStage -> Picture
 displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) (y2 - 0.4 * screenDivider) $ pictures [scale sc sc $ text s]
@@ -184,30 +174,28 @@ displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTra
                                                               xTranslate = x2 + 0.1 * screenDivider
                                                               pic s stat = pictures [scale sc sc $ text $ s ++ show stat]
                                                               
-missToPicture :: Board -> BoardPos -> Picture
-missToPicture board pos = cellsToPicture board pos (Empty Checked) crossPicture
 
-hitsToPicture :: Board -> BoardPos -> Picture
-hitsToPicture board pos = cellsToPicture board pos (Ship Checked) shipPicture
-
-shipsToPicture :: Board -> BoardPos -> Picture
-shipsToPicture board pos = cellsToPicture board pos (Ship NotChecked) shipPicture
+displayCells :: Board -> BoardPos -> Bool -> Picture
+displayCells board pos show = pictures [color missColor $ cellsToPicture board pos (Empty Checked) crossPicture, 
+                               color hitColor  $ cellsToPicture board pos (Ship Checked) shipPicture, 
+                               if show then color shipColor $ cellsToPicture board pos (Ship NotChecked) 
+                               shipPicture else Blank
+ ]
 
 showPlacingShip :: Ships -> Picture
 showPlacingShip [] = Blank
 showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s 
 
-gameAsRunningPicture :: Game -> Picture
-gameAsRunningPicture game =
-    pictures [color radarColor $ pictures [ radarPicture radar boardUserPos, radarPicture radar boardAIPos],
-              color boardGridColor $ pictures [boardAIGrid, boardUserGrid],
+
+gameToPicture :: Game -> Picture
+gameToPicture game =
+    pictures [color radarColor $ pictures [radarPicture radar boardUserPos, radarPicture radar boardAIPos],
+              color boardGridColor $ pictures [boardGrid boardUserPos, boardGrid boardAIPos],
               color green $ displayGameName boardUserPos,
               color textColor $ combineDisplayText boardUserPos stage win currRound winStats,
-              color missColor $ pictures [missToPicture userBoard boardUserPos, missToPicture boardAI boardAIPos],
-              color hitColor  $ pictures [hitsToPicture userBoard boardUserPos, hitsToPicture boardAI boardAIPos],
-              color shipColor $ shipsToPicture userBoard boardUserPos,
+              pictures [displayCells userBoard boardUserPos True , displayCells boardAI boardAIPos False],
               color movingShipColor  $ showPlacingShip ships,
-              color red $ moveExplosion r pos b
+              color (if ishit then red else cyan) $ moveExplosion r pos b
              ]
              where userBoard = gameBoardUser game
                    boardAI = gameBoardAI game
@@ -216,13 +204,11 @@ gameAsRunningPicture game =
                    win = winner game
                    currRound = currentRound game
                    winStats = stats game
-                   (r, pos,_, _,b) =  shootAnimation game
+                   (ishit, r, pos,_, _,b) =  shootAnimation game
                    radar = radarAnimation game
-
-
 
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))
                           (screenHeight * (-0.5))
-                           frame
-        where frame = gameAsRunningPicture game
+                           picture
+        where picture = gameToPicture game

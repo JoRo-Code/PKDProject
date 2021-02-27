@@ -19,7 +19,7 @@ type ShipSize    = Int
 type Round       = Int
 type Score       = Int
 type Stats       = ((Player, Score), (Player, Score))
-
+type HitShip     = Bool
 -- AI-types
 type ShootList = [(CellCoord,Cell)]
 type Stack = [(CellCoord,Cell)]
@@ -54,7 +54,7 @@ data Game = Game { gameBoardUser :: Board ,
                    stats         :: Stats,
                    -- Animation
                    -- radius, position of centre of wave, end radius of wave, derivative, showBool
-                   shootAnimation :: (Radius, Pos, Radius, Derivative, Bool),
+                   shootAnimation :: (HitShip, Radius, Pos, Radius, Derivative, Bool),
                    radarAnimation :: Radar,
                    radarAngle          :: Angle
                  } deriving (Show, Eq)
@@ -62,7 +62,7 @@ data Game = Game { gameBoardUser :: Board ,
 
 
 screenWidth :: Float
-screenWidth = 1400
+screenWidth = 1500
 screenHeight :: Float
 screenHeight = (screenWidth - screenDivider) / 2
 
@@ -139,7 +139,7 @@ initGame = Game { gameBoardUser = initBoard,
                   stats         = ((User, 0), (AI, 0)),
 
                   -- Animation
-                  shootAnimation = (startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
+                  shootAnimation = (False, startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
                   radarAnimation = radarInitial,
                   radarAngle          = 0.0
                 }

@@ -146,6 +146,13 @@ getState b c =  case getCell b c of
                      Empty s -> s
                      Ship s -> s
 
+hitShip :: Board -> CellCoord -> Bool 
+hitShip b coord = validCoordinates coord && b ! coord == Ship NotChecked
+
+isWithinBoard :: BoardPos -> ScreenCoord -> Bool
+isWithinBoard ((x1,y1),(x2,y2)) (x,y) = xNew >= x1 && xNew <= x2 && yNew >= y1 && yNew <= y2
+                                      where (xNew, yNew) = (x + 0.5 * screenWidth, y + 0.5*screenHeight)
+
 -- returns True if a cell is Checked, else False
 
 {- isChecked board coord
@@ -159,29 +166,29 @@ isChecked b coord = s == Checked
 
 
 
-{- isWinner board 
+{- allShipsChecked board 
     checks if board has won
     RETURNS: if all ships are checked on board
 -}
-isWinner :: Board -> Bool
-isWinner b = not $ any (\cell -> cell == Ship NotChecked) b
+allShipsChecked :: Board -> Bool
+allShipsChecked b = not $ any (\cell -> cell == Ship NotChecked) b
 
 {- checkWin boardUser boardAI 
     checks if user or AI won
     RETURNS: the player who won first
 -}
 checkWin :: Board -> Board -> Maybe Player
-checkWin boardUser boardAI = case (isWinner boardUser, isWinner boardAI) of
+checkWin boardUser boardAI = case (allShipsChecked boardUser, allShipsChecked boardAI) of
                              (True, True)  -> Just User
                              (True, False) -> Just AI
                              (False, True) -> Just User
-                             (_, _)        -> Nothing
+                             _             -> Nothing
 {- updateStats (statsUser, statsAI) winner
     changes stats according to last winner
     RETURNS: (statsUser, statsAI) updated according to winner
 
 -}
-updateStats :: ((Player, Int), (Player, Int)) -> Maybe Player -> ((Player, Int), (Player, Int))
+updateStats :: Stats -> Maybe Player -> Stats
 updateStats s@((user, n1), (ai, n2)) player = case player of 
                                          Just User -> ((user, n1 + 1), (ai, n2))
                                          Just AI   -> ((user, n1), (ai, n2 + 1))
@@ -195,7 +202,7 @@ updateStats s@((user, n1), (ai, n2)) player = case player of
 playerShoot :: Game -> CellCoord -> Game
 playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI game) coord)
                         = game {gameBoardAI = shotAIboard, 
-                                gameBoardUser = shotUserBoard,
+                                gameBoardUser = if checkWinner == Just User then gameBoardUser game else shotUserBoard,
                                 stackAI = updatedAIstack,
                                 winner = checkWinner,
                                 gen = newGen,
@@ -225,7 +232,6 @@ allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
 findValidDirectionalPlacements :: Board -> [CellCoord] -> ShipSize ->  Direction -> [(CellCoord, Direction)]
 findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filter (\coord -> validShipPlacement b coord s d) coords
                  
-
 
 {- findAllValidPlacements board ship 
        RETURNS: all possible placements of ship on board
@@ -290,8 +296,8 @@ filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
 aiPrio :: ShootList -> ShootList -> ShootList
 aiPrio [] acc = acc
 aiPrio (x:xs) acc 
-  | even $ getCol x = if  odd $ getRow x then aiPrio xs ([x] ++ acc) else aiPrio xs (acc ++ [x])
-  | otherwise       = if even $ getRow x then aiPrio xs ([x] ++ acc) else aiPrio xs (acc ++ [x])
+  | even $ getCol x = if  odd $ getRow x then aiPrio xs (x : acc) else aiPrio xs (acc ++ [x])
+  | otherwise       = if even $ getRow x then aiPrio xs (x : acc) else aiPrio xs (acc ++ [x])
 
 aiPrio' :: ShootList -> ShootList
 aiPrio' s = foldl combos [] s
@@ -346,7 +352,7 @@ eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  =
 
 eventHandler (EventKey (SpecialKey key) Down _ _) game       = 
     case gameStage game of 
-        Placing User -> trace ("Current gen: " ++ show (gen game)) moveShip game key
+        Placing User -> moveShip game key
         _            -> game
 
 eventHandler (EventKey (Char 'r') Down _ _) game             = 
@@ -357,8 +363,10 @@ eventHandler (EventKey (Char 'r') Down _ _) game             =
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
 
     case (winner game, gameStage game) of
-         (Nothing, Shooting User) -> playerShoot game {shootAnimation = (startRadius, mousePos, end, startDerivative, True)} $ mouseToCell mousePos boardAIPos -- should change gamestage to shooting AI
-                                                where (_,_, end, _, _) = shootAnimation game
+         (Nothing, Shooting User) -> playerShoot game {shootAnimation = (hitShip (gameBoardAI game) coord,startRadius, mousePos, end, startDerivative, performAnimation)} coord -- should change gamestage to shooting AI
+                                                where (_,_,_, end, _, _) = shootAnimation game
+                                                      coord = mouseToCell mousePos boardAIPos
+                                                      performAnimation = isWithinBoard boardAIPos mousePos && getState (gameBoardAI game) coord == NotChecked
          (_, Shooting User) -> initGame {gameBoardAI = newBoard
                                         , gen = newGen
                                         , currentRound = currentRound game + 1
