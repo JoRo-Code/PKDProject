@@ -13,10 +13,30 @@ import Data.List
 import Debug.Trace
 
 
+
+
+{- validCoordinates coord
+    checks if coord is within the range of a board
+    PRE: n is Int
+    RETURNS: True if coord is in board of size n, else false.
+    EXAMPLES:       validCoordinates (0,0)   == True
+                    validCoordinates (-1,-1) == False
+
+-}
 validCoordinates :: CellCoord -> Bool
 validCoordinates  = inRange boardIndex
                     where boardIndex = ((0, 0), (n - 1, n - 1)) 
 
+{- endCoordinates startposition shipsize direction
+    calculates the end position of a ship
+    PRE: shipsize >=1
+    RETURNS: end coordinates of a ship with startposition, shipsize and direction.
+    EXAMPLES: 
+                endCoordinates (0,0) 1 Horizontal == (0,0)
+                endCoordinates (0,0) 5 Horizontal == (4,0)
+                endCoordinates (0,0) 5 Vertical   == (0,-4)
+
+-}
 endCoordinates :: CellCoord -> ShipSize -> Direction -> CellCoord
 endCoordinates (c, r) s Horizontal = (c + s - 1, r)
 endCoordinates (c, r) s Vertical = (c, r - s + 1)
@@ -95,7 +115,7 @@ rotateShip game
                                       Horizontal -> Vertical
                                       Vertical   -> Horizontal
 {- confirmShip game
-    puts placing ship on board and changes gameStage if all ships have been placed
+    puts current placing ship on board and changes gameStage if all ships have been placed
     RETURNS: -------
 -}
 confirmShip :: Game -> Game
@@ -144,14 +164,25 @@ getState b c =  case getCell b c of
                      Empty s -> s
                      Ship s -> s
 
+
+{- hitShip board coord
+    checks if coord is a hit on board
+    RETURNS: True if coord == Ship NotChecked, and coord is valid. Else False
+
+-}
 hitShip :: Board -> CellCoord -> Bool 
 hitShip b coord = validCoordinates coord && b ! coord == Ship NotChecked
 
+
+{- isWithinBoard boardposition screencoord
+    checks if a screencoord is within a board with width and height of boardposition
+    RETURNS: True if screencoord is within boardposition, else False.
+
+-}
 isWithinBoard :: BoardPos -> ScreenCoord -> Bool
 isWithinBoard ((x1,y1),(x2,y2)) (x,y) = xNew >= x1 && xNew <= x2 && yNew >= y1 && yNew <= y2
                                       where (xNew, yNew) = (x + 0.5 * screenWidth, y + 0.5*screenHeight)
 
--- returns True if a cell is Checked, else False
 
 {- isChecked board coord
     evaluates if coord is checked
@@ -216,7 +247,10 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
 
 
 {- allCoords
-       RETURNS: all possible cellcoords on board regarding global n
+    shows all cellcoords within a global board
+    RETURNS: all possible cellcoords on board regarding board size n
+    EXAMPLES: allCoords == [(0,0),(0,1),(1,0),(1,1)]
+                where n = 2
 
 -}
 allCoords :: [CellCoord]
@@ -224,7 +258,8 @@ allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
 
 
 {- findValidDirectionalPlacements board coords ship direction
-       RETURNS: possible coords of ship with direction
+       finds possible positions of a ship in a certain direction
+       RETURNS: all possible valid coords of ship with direction on board
 
 -}
 findValidDirectionalPlacements :: Board -> [CellCoord] -> ShipSize ->  Direction -> [(CellCoord, Direction)]
@@ -232,14 +267,16 @@ findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filte
                  
 
 {- findAllValidPlacements board ship 
-       RETURNS: all possible placements of ship on board
+    finds all valid placments of ship on board
+    RETURNS: all valid placements of ship on board
 -}
 findAllValidPlacements :: Board -> ShipSize -> [(CellCoord, Direction)]
 findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizontal ++ findValidDirectionalPlacements b allCoords s Vertical 
 
 
 {- randomElement list gen
-    RETURNS: (randomly generated element of list, finalGen)
+    randomly picks an element of list
+    RETURNS: (randomly generated element of list with gen, new seed generated with gen)
 -}
 randomElement :: [a] -> StdGen -> (a, StdGen)
 randomElement list gen = (list !! randomInt, newGen)
@@ -248,6 +285,7 @@ randomElement list gen = (list !! randomInt, newGen)
 
 {- placeShipAI gen board ship placements
        updates board with a random placement of ship
+       RETURNS: (board with ship integrated randomly with placements and gen, new seed generated with gen)
 
 -}
 placeShipAI :: StdGen -> Board -> ShipSize -> [(CellCoord, Direction)] -> (Board, StdGen)
@@ -257,9 +295,9 @@ placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
 
 {- placeMultipleShipsAI gen board ships
        places the ships on random places on the board
-       RETURNS: (generated board, newGen)
--}
+       RETURNS: (ships integrated randomly on board with gen, new seed generated with gen)
 
+-}
 placeMultipleShipsAI :: StdGen -> Board -> Ships -> (Board, StdGen)
 -- VARIANT: length ships
 placeMultipleShipsAI gen b [] = (b, gen)
@@ -337,6 +375,11 @@ aiShoot (b,s, hits) gen = (aiShootAux (b,removeChecked $ updateStack s newList, 
 
 --------------------- EventHandler --------------------------------
 
+
+{- eventHandler event game
+    handles all input from user
+    RETURNS: game with possible modifications decided by event
+-}
 eventHandler :: Event -> Game -> Game
 eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = 
      case gameStage game of 
