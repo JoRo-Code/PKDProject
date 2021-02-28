@@ -452,9 +452,6 @@ aiShoot :: (Board,Stack, AIHits) -> StdGen -> ((Board, Stack, AIHits), StdGen)
 aiShoot (b,s, hits) gen = (aiShootAux (b,removeChecked $ updateStack s newList, hits) newList,newGen)
                      where (newList, newGen) = filterShootList b gen
 
-
-[((0,0),Empty NotChecked),((0,1),Empty NotChecked),((1,0),Ship NotChecked),((1,1),Ship Checked)]
-
 --------------------- EventHandler --------------------------------
 
 
