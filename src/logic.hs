@@ -11,7 +11,7 @@ import Rendering
 
 import Data.List
 import Debug.Trace
-import Test.HUnit
+--import Test.HUnit
 
 
 
@@ -308,71 +308,152 @@ placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBo
 
 --------------------- Shoot AI --------------------------------
 
--- Returns column of element in a ShootList
+{- getCol ((col,row),cell)
+   gives the column number of an element in a ShootList or Stack
+   RETURNS: col from ((col,row),cell)
+   EXAMPLES: getCol ((2,3),Empty NotChecked) == 2
+             getCol ((9,0),Ship Checked) == 9
+             getCol ((1,1),Ship NotChecked) == 1
+-}
 getCol :: (CellCoord,Cell) -> Col
 getCol ((a,_),_) = a
 
--- Returns row of element in a ShootList
+{- getRow ((col,row),cell)
+   gives the row number of an element in a ShootList or Stack
+   RETURNS: row from ((col,row),cell)
+   EXAMPLES: getCol ((2,3),Empty NotChecked) == 3
+             getCol ((9,0),Ship Checked) == 0
+             getCol ((1,1),Ship NotChecked) == 1
+-}
 getRow :: (CellCoord,Cell) -> Row
 getRow ((_,b),_) = b
 
+{- aiShootList board
+   creates a ShootList from a Board
+   RETURNS: a ShootList from board
+   EXAMPLES: aiShootList (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
+                         ((0,1),Empty Checked),((0,2),Empty NotChecked),
+                         ((1,0),Ship Checked),((1,1),Ship Checked),
+                         ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
+                         ((2,1),Empty Checked),((2,2),Empty NotChecked)]) 
+                         == [((0,0),Empty NotChecked),((0,1),Empty Checked),
+                            ((0,2),Empty NotChecked),((1,0),Ship Checked),
+                            ((1,1),Ship Checked),((1,2),Ship NotChecked),
+                            ((2,0),Empty NotChecked),((2,1),Empty Checked),((2,2),Empty NotChecked)]
+-}
 aiShootList :: Board -> ShootList
 aiShootList b = [((c,r), b ! (c,r)) | c <- [0..n-1], r <- [0..n-1]]
 
--- Creates a ShootList of all cells with state NotChecked
-filterShootList :: Board -> StdGen -> (ShootList, StdGen)
-filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
-    where (shuffledList, newGen) = shuffle (aiShootList b) gen 
-
--- Sorts a shootlist so AI prioritises cells that are not next to each other
+{- aiPrio sl acc
+   sorts a ShootList so AI prioritises cells that are not next to each other
+   RETURNS: a ShootList consisting of sl in prioritised order
+   EXAMPLES: filterShootList [((0,0),Empty NotChecked),
+                             ((0,1),Empty Checked),((0,2),Empty NotChecked),
+                             ((1,0),Ship Checked),((1,1),Ship Checked),
+                             ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
+                             ((2,1),Empty Checked),((2,2),Empty NotChecked)] []
+                             == ([((2,1),Empty Checked),((1,2),Ship NotChecked),
+                                ((1,0),Ship Checked),((0,1),Empty Checked),
+                                ((0,0),Empty NotChecked),((0,2),Empty NotChecked),
+                                ((1,1),Ship Checked),((2,0),Empty NotChecked),((2,2),Empty NotChecked)]
+-}
 aiPrio :: ShootList -> ShootList -> ShootList
+-- VARIANT: length sl
 aiPrio [] acc = acc
 aiPrio (x:xs) acc 
   | even $ getCol x = if  odd $ getRow x then aiPrio xs (x : acc) else aiPrio xs (acc ++ [x])
   | otherwise       = if even $ getRow x then aiPrio xs (x : acc) else aiPrio xs (acc ++ [x])
 
-aiPrio' :: ShootList -> ShootList
-aiPrio' s = foldl combos [] s
+{- filterShootList board gen
+   creates a ShootList with random order of all cells with state NotChecked from board with gen and sorts by priority
+   RETURNS: a tuple consisting of a ShootList of all cells with state NotChecked and StdGen
+   EXAMPLES: filterShootList array ((0,0),(2,2)) [((0,0),Empty NotChecked),
+                             ((0,1),Empty Checked),((0,2),Empty NotChecked),
+                             ((1,0),Ship Checked),((1,1),Ship Checked),
+                             ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
+                             ((2,1),Empty Checked),((2,2),Empty NotChecked)]) (mkStdGen 10)
+                             == ([((1,2),Ship NotChecked),((0,2),Empty NotChecked),
+                                ((0,0),Empty NotChecked),((2,2),Empty NotChecked),
+                                ((2,0),Empty NotChecked)],
+                                StdGen {unStdGen = SMGen 15835914885811367975 614480483733483467})
+-}
+filterShootList :: Board -> StdGen -> (ShootList, StdGen)
+filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
+    where (shuffledList, newGen) = shuffle (aiShootList b) gen 
 
-combos :: ShootList -> (CellCoord,Cell) -> ShootList
-combos acc e@((c, r), cell) = case (even c, even r) of
-                              (True, False)  -> e : acc
-                              (True, True)   -> acc ++ [e]
-                              (False, True)  -> e : acc
-                              (False, False) -> acc ++ [e]
-             
-
--- Removes already checked cells from Stack or ShootList
+{- removeChecked s
+   removes already checked cells from Stack or ShootList
+   RETURNS: s without cells that are checked
+   EXAMPLES: removeChecked [((0,0),Empty NotChecked),
+                           ((0,1),Empty Checked),((0,2),Empty NotChecked),
+                           ((1,0),Ship Checked),((1,1),Ship Checked),
+                           ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
+                           ((2,1),Empty Checked),((2,2),Empty NotChecked)]
+                           == [((0,0),Empty NotChecked),((0,2),Empty NotChecked),
+                              ((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,2),Empty NotChecked)]
+-}
 removeChecked :: [(CellCoord, Cell)] -> [(CellCoord, Cell)]
 removeChecked s = filter (\(coord, cell) -> cell == Empty NotChecked || cell == Ship NotChecked) s
 
--- Updates Stack with the head from ShootList if Stack is empty
+{- updateStack stack sl
+   updates Stack with the head from ShootList if Stack is empty
+   RETURNS: stack with the head from sl if stack is empty, otherwise returns stack
+   EXAMPLES: updateStack [] [((0,0),Empty NotChecked),((1,2),Ship NotChecked)] == [((0,0),Empty NotChecked)]
+             updateStack [((0,0),Empty NotChecked)] [((1,2),Ship NotChecked)] == [((0,0),Empty NotChecked)]
+             updateStack [] [] == []
+-}
 updateStack :: Stack -> ShootList -> Stack
 updateStack [] (x:xs) = [x]
 updateStack s _ = s
 
--- Returns a Stack of the cohesive cells to a cell in a row
+{- cohesiveCells board ((col,row),cell)
+   creates a Stack of the cohesive cells to a cell
+   PRE: ((col,row),cell) is in board
+   RETURNS: a Stack of the cohesive cells to ((col,row),cell) in board
+   EXAMPLES: cohesiveCells (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
+                           ((0,1),Empty Checked),((0,2),Empty NotChecked),
+                           ((1,0),Ship Checked),((1,1),Ship Checked),
+                           ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
+                           ((2,1),Empty Checked),((2,2),Empty NotChecked)]) ((1,0),Ship Checked)
+                           == [((1,1),Ship Checked),((0,0),Empty NotChecked),((2,0),Empty NotChecked)]
+-}
 cohesiveCells :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCells b ((c,r),x) = map (\coord -> (coord, b ! coord)) (filter validCoordinates [(c,r+1), (c,r-1), (c-1,r), (c+1,r)])
 
--- Returns True if a Cell contains an unchecked Ship, otherwise False
+{- isShip ((col,row),cell)
+   checks if an element in a ShootList or Stack is Ship NotChecked
+   RETURNS: True if cell is Ship NotChecked, otherwise False
+   EXAMPLES: isShip ((2,3),Empty NotChecked) == False
+             isShip ((9,0),Ship Checked)     == False
+             isShip ((1,1),Ship NotChecked)  == True
+             isShip ((2,2),Empty Checked)    == False
+-}
 isShip :: (CellCoord,Cell) -> Bool
 isShip (_, Ship NotChecked) = True
 isShip _ = False
 
--- Checks first cell in stack
---PRE: ShootList is not empty
+{- aiShootAux (board,stack,hits) sl
+   checks first cell in stack
+   PRE: ShootList is not empty
+   RETURNS: (board,stack,hits) where first cell in stack is checked in board
+   EXAMPLES:
+-}
 aiShootAux :: (Board,Stack, AIHits) -> ShootList -> (Board,Stack, AIHits)
 aiShootAux (b, s@(coord,cell):st, hits)  l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st), checkCell hits coord)
                                            | otherwise = (checkCell b coord, st, hits)
 
--- Checks first cell in stack
+{- aiShootAux (board,stack,hits) gen
+   checks first cell in stack
+   PRE: ShootList is not empty
+   RETURNS: ((board,stack,hits),gen) where first cell in stack is checked in board
+   EXAMPLES: 
+-}
 aiShoot :: (Board,Stack, AIHits) -> StdGen -> ((Board, Stack, AIHits), StdGen)
 aiShoot (b,s, hits) gen = (aiShootAux (b,removeChecked $ updateStack s newList, hits) newList,newGen)
                      where (newList, newGen) = filterShootList b gen
 
 
-
+[((0,0),Empty NotChecked),((0,1),Empty NotChecked),((1,0),Ship NotChecked),((1,1),Ship Checked)]
 
 --------------------- EventHandler --------------------------------
 
@@ -436,36 +517,36 @@ cellCount cell board = length $ filter (==cell) (elems board)
  
 
 -- placing --
-test1 = TestCase $ assertEqual "placeShip: increasing correct ammount of ship-cells on board" (shipsCount initBoard + 5) (shipsCount b)
-        where b = (gameBoardUser (placeShip initGame (0,0) 5 Horizontal))
-test2 = TestCase $ assertEqual "placeShip edgeCase: shipsize 0" initGame (placeShip initGame (0,0) 0 Vertical)
-test3 = TestCase $ assertEqual "placeShip edgeCase: start position outside of board" initGame (placeShip initGame (-1,-1) 0 Vertical)
-test4 = TestCase $ assertEqual "placeShip edgeCase: end position outside of board" initGame (placeShip initGame (9,9) 5 Horizontal)
+--test1 = TestCase $ assertEqual "placeShip: increasing correct ammount of ship-cells on board" (shipsCount initBoard + 5) (shipsCount b)
+--        where b = (gameBoardUser (placeShip initGame (0,0) 5 Horizontal))
+--test2 = TestCase $ assertEqual "placeShip edgeCase: shipsize 0" initGame (placeShip initGame (0,0) 0 Vertical)
+--test3 = TestCase $ assertEqual "placeShip edgeCase: start position outside of board" initGame (placeShip initGame (-1,-1) 0 Vertical)
+--test4 = TestCase $ assertEqual "placeShip edgeCase: end position outside of board" initGame (placeShip initGame (9,9) 5 Horizontal)
 
 -- placingAI --
-test5 = TestCase $ assertEqual "placeMultipleShipsAI: correct total ship-cells" 17 (shipsCount b)
-        where b = fst $ placeMultipleShipsAI (mkStdGen 10) initBoard initShips
+--test5 = TestCase $ assertEqual "placeMultipleShipsAI: correct total ship-cells" 17 (shipsCount b)
+--        where b = fst $ placeMultipleShipsAI (mkStdGen 10) initBoard initShips
 
 -- shooting --
-test6 = TestCase $ assertEqual "playerShoot: shooting empty cell " (Empty Checked) (getCell (gameBoardAI (playerShoot initGame (0,0))) (0,0))
+--test6 = TestCase $ assertEqual "playerShoot: shooting empty cell " (Empty Checked) (getCell (gameBoardAI (playerShoot initGame (0,0))) (0,0))
 
-test7 = TestCase $ assertEqual "aiShoot: increasing shot cells" 1  (cellCount (Empty Checked) b)
-        where ((b, _, _),_)= aiShoot (initBoard, [], initBoard) (mkStdGen 10)
+--test7 = TestCase $ assertEqual "aiShoot: increasing shot cells" 1  (cellCount (Empty Checked) b)
+--        where ((b, _, _),_)= aiShoot (initBoard, [], initBoard) (mkStdGen 10)
 
-test8 = TestCase $ assertEqual "aiShoot: shooting ship" 1 (cellCount (Ship Checked) b)
-        where ((b, _, _),_)= aiShoot (shipBoard, [], initBoard) (mkStdGen 10)
-              shipBoard = array ((0, 0), (9,9)) $ zip (range ((0, 0), (9,9))) (repeat $ Ship NotChecked)
+--test8 = TestCase $ assertEqual "aiShoot: shooting ship" 1 (cellCount (Ship Checked) b)
+--        where ((b, _, _),_)= aiShoot (shipBoard, [], initBoard) (mkStdGen 10)
+--              shipBoard = array ((0, 0), (9,9)) $ zip (range ((0, 0), (9,9))) (repeat $ Ship NotChecked)
 
 
 -- run --
-tests = TestList    [ test1
-                    , test2
-                    , test3
-                    , test4
-                    , test5
-                    , test6
-                    , test7
-                    , test8
-                    ]
+--tests = TestList    [ test1
+--                    , test2
+--                    , test3
+--                    , test4
+--                    , test5
+--                    , test6
+--                    , test7
+--                    , test8
+--                    ]
 
-runtests = runTestTT $ tests
+--runtests = runTestTT $ tests
