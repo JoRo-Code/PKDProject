@@ -11,6 +11,7 @@ import Rendering
 
 import Data.List
 import Debug.Trace
+import Test.HUnit
 
 
 
@@ -411,3 +412,60 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
                                         where (newBoard, newGen) = placeMultipleShipsAI (gen game) initBoard initShips
          _ -> game
 eventHandler _ game = game 
+
+
+{- shipsCount board
+    counts number of cells with ships NotChecked on a board
+    RETURNS: number of cells in board with Ship NotChecked
+    EXAMPLES: 
+                shipsCount initBoard == 0
+-}
+shipsCount :: Board -> Int
+shipsCount board = length $ filter (==Ship NotChecked) (elems board)
+
+
+{- cellCount cellContent board
+    counts number of cells with cellContent on a board
+    RETURNS: number of cells in board with cellContent
+    EXAMPLES: 
+                cellCount (Ship Checked) initBoard == 0
+-}
+cellCount ::  Cell -> Board -> Int
+cellCount cell board = length $ filter (==cell) (elems board)
+----------------------------- TESTCASES --------------------------------
+ 
+
+-- placing --
+test1 = TestCase $ assertEqual "placeShip: increasing correct ammount of ship-cells on board" (shipsCount initBoard + 5) (shipsCount b)
+        where b = (gameBoardUser (placeShip initGame (0,0) 5 Horizontal))
+test2 = TestCase $ assertEqual "placeShip edgeCase: shipsize 0" initGame (placeShip initGame (0,0) 0 Vertical)
+test3 = TestCase $ assertEqual "placeShip edgeCase: start position outside of board" initGame (placeShip initGame (-1,-1) 0 Vertical)
+test4 = TestCase $ assertEqual "placeShip edgeCase: end position outside of board" initGame (placeShip initGame (9,9) 5 Horizontal)
+
+-- placingAI --
+test5 = TestCase $ assertEqual "placeMultipleShipsAI: correct total ship-cells" 17 (shipsCount b)
+        where b = fst $ placeMultipleShipsAI (mkStdGen 10) initBoard initShips
+
+-- shooting --
+test6 = TestCase $ assertEqual "playerShoot: shooting empty cell " (Empty Checked) (getCell (gameBoardAI (playerShoot initGame (0,0))) (0,0))
+
+test7 = TestCase $ assertEqual "aiShoot: increasing shot cells" 1  (cellCount (Empty Checked) b)
+        where ((b, _, _),_)= aiShoot (initBoard, [], initBoard) (mkStdGen 10)
+
+test8 = TestCase $ assertEqual "aiShoot: shooting ship" 1 (cellCount (Ship Checked) b)
+        where ((b, _, _),_)= aiShoot (shipBoard, [], initBoard) (mkStdGen 10)
+              shipBoard = array ((0, 0), (9,9)) $ zip (range ((0, 0), (9,9))) (repeat $ Ship NotChecked)
+
+
+-- run --
+tests = TestList    [ test1
+                    , test2
+                    , test3
+                    , test4
+                    , test5
+                    , test6
+                    , test7
+                    , test8
+                    ]
+
+runtests = runTestTT $ tests
