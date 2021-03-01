@@ -91,6 +91,7 @@ type HitShip     = Bool
 -}
 type ShootList = [(CellCoord,Cell)]
 
+
 {- A list of the Coordinates and Cells AI is currently focusing its shots.
 -}
 type Stack = [(CellCoord,Cell)]
