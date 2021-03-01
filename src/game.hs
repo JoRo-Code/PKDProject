@@ -88,7 +88,7 @@ startDerivative = screenWidth/2
 
 
 n :: BoardSize
-n = 10
+n = 3
 
 -- Create a new board, a 2d array, where all cells are empty notchecked initially.   
 
@@ -125,7 +125,6 @@ initShips = [carrier, battleShip, cruiser, submarine, destroyer]
 -}
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard,
-                  gameBoardAI   = initBoard, 
                   gameStage     = Placing User,
                   shipsUser     = initShips,
                   stackAI       = [],
