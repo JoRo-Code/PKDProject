@@ -242,7 +242,7 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
                        where shotAIboard = checkCell (gameBoardAI game) coord
                              newStats = updateStats (stats game) checkWinner
                              checkWinner = checkWin shotUserBoard shotAIboard
-                             ((shotUserBoard, updatedAIstack, updatedHits), newGen) = aiShoot (gameBoardUser game, stackAI game, hitsAI game) (gen game)
+                             ((shotUserBoard, updatedAIstack), newGen) = aiShoot (gameBoardUser game, stackAI game) (gen game)
 
 ---------------------------- Placing AI ------------------------
 
@@ -438,9 +438,9 @@ isShip _ = False
    RETURNS: (board,stack,hits) where first cell in stack is checked in board
    EXAMPLES:
 -}
-aiShootAux :: (Board,Stack, AIHits) -> ShootList -> (Board,Stack, AIHits)
-aiShootAux (b, s@(coord,cell):st, hits)  l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st), checkCell hits coord)
-                                           | otherwise = (checkCell b coord, st, hits)
+aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
+aiShootAux (b, s@(coord,cell):st)  l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st))
+                                     | otherwise = (checkCell b coord, st)
 
 {- aiShootAux (board,stack,hits) gen
    checks first cell in stack
@@ -448,8 +448,8 @@ aiShootAux (b, s@(coord,cell):st, hits)  l | isShip s = (checkCell b coord, remo
    RETURNS: ((board,stack,hits),gen) where first cell in stack is checked in board
    EXAMPLES: 
 -}
-aiShoot :: (Board,Stack, AIHits) -> StdGen -> ((Board, Stack, AIHits), StdGen)
-aiShoot (b,s, hits) gen = (aiShootAux (b,removeChecked $ updateStack s newList, hits) newList,newGen)
+aiShoot :: (Board,Stack) -> StdGen -> ((Board, Stack), StdGen)
+aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList) newList,newGen)
                      where (newList, newGen) = filterShootList b gen
 
 --------------------- EventHandler --------------------------------

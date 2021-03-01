@@ -23,8 +23,6 @@ type HitShip     = Bool
 -- AI-types
 type ShootList = [(CellCoord,Cell)]
 type Stack = [(CellCoord,Cell)]
-type AIHits = Board
-
 
 {- cellCoord: starting coord of ship,
   Direction: continuing right or down,
@@ -44,7 +42,6 @@ type Radar = ([Radius], Angle)
 
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
-                   hitsAI        :: AIHits,
                    gameStage     :: GameStage,
                    shipsUser     :: Ships,
                    stackAI       :: Stack,
@@ -129,7 +126,6 @@ initShips = [carrier, battleShip, cruiser, submarine, destroyer]
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard,
                   gameBoardAI   = initBoard, 
-                  hitsAI        = initBoard,
                   gameStage     = Placing User,
                   shipsUser     = initShips,
                   stackAI       = [],
