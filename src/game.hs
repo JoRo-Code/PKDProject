@@ -3,48 +3,146 @@ module Game where
 import Data.Array
 import System.Random
 
+{- The state of a square. 
+    Checked means the square has been shot at.
+    NotChecked means the square has not been shot at.
+-}
 data SquareState  = Checked           | NotChecked                 deriving (Show, Eq)
+
+{- Information regarding a cell. 
+    - Empty means the cell does not contain a ship.
+    - Ship means the cell contains a ship.
+    - SquareState gives the state of the cell.
+-}
 data Cell         = Empty SquareState | Ship SquareState           deriving (Show, Eq)
+
+{- Represents current player.
+    - User means it is the user currently playing.
+    - AI means it is the AI currently playing.
+-}
 data Player       = User              | AI                         deriving (Show, Eq)
+
+{- The current stage of the game and the current player.
+     - Placing means the current player can place ships.
+     - Shooting means the current player can shoot.
+     - Player represents the current player.
+-}
 data GameStage    = Placing Player    | Shooting Player            deriving (Show, Eq)
+
+{- Represents the direction of a ship.
+-}
 data Direction    = Horizontal        | Vertical                   deriving (Show, Eq)  
 
-type Row         = Int
-type Col         = Int
-type CellCoord   = (Col, Row)
-type ScreenCoord = (Float, Float)
-type Board       = Array (Col, Row) Cell
-type BoardSize   = Int
-type ShipSize    = Int
-type Round       = Int
-type Score       = Int
-type Stats       = ((Player, Score), (Player, Score))
-type HitShip     = Bool
--- AI-types
-type ShootList = [(CellCoord,Cell)]
-type Stack = [(CellCoord,Cell)]
-type AIHits = Board
-
-
-{- cellCoord: starting coord of ship,
-  Direction: continuing right or down,
-  ShipSize: length of the ship
+{- The number of a row on the board.
 -}
+type Row         = Int
 
+{- The number of a column on the board.
+-}
+type Col         = Int
+
+{- Coordinates for a cell consisting of column and row.
+-}
+type CellCoord   = (Col, Row)
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
+type ScreenCoord = (Float, Float)
+
+{- An Array with coordinates for a cell consisting of column and row and its corresponding cell.
+-}
+type Board       = Array (Col, Row) Cell
+
+{- The size of a board where the BoardSize is the amount of Columns and Rows.
+-}
+type BoardSize   = Int
+
+{- The length of a Ship represented by an Int.
+-}
+type ShipSize    = Int
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
+type Round       = Int
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
+type Score       = Int
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
+type Stats       = ((Player, Score), (Player, Score))
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
+type HitShip     = Bool
+
+{- A list of the Coordinates and Cells AI can shoot.
+-}
+type ShootList = [(CellCoord,Cell)]
+
+{- A list of the Coordinates and Cells AI is currently focusing its shots.
+-}
+type Stack = [(CellCoord,Cell)]
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
 type Ship = (CellCoord, Direction, ShipSize)
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
 type Ships = [Ship]
 
-
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
 type Radius = Float
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
 type Pos = (Float, Float)
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
 type Derivative = Float
 
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
 type Angle = Float
+
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
 type Radar = ([Radius], Angle)
 
+{- ... description of what the data type represents ... 
+     ... description of how the datatype represents data ...
+     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+-}
 data Game = Game { gameBoardUser :: Board , 
                    gameBoardAI   :: Board,
-                   hitsAI        :: AIHits,
                    gameStage     :: GameStage,
                    shipsUser     :: Ships,
                    stackAI       :: Stack,
@@ -129,7 +227,6 @@ initShips = [carrier, battleShip, cruiser, submarine, destroyer]
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard,
                   gameBoardAI   = initBoard, 
-                  hitsAI        = initBoard,
                   gameStage     = Placing User,
                   shipsUser     = initShips,
                   stackAI       = [],
