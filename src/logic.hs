@@ -11,7 +11,7 @@ import Rendering
 
 import Data.List
 import Debug.Trace
---import Test.HUnit
+import Test.HUnit
 
 
 
@@ -367,7 +367,7 @@ aiPrio (x:xs) acc
 {- filterShootList board gen
    creates a ShootList with random order of all cells with state NotChecked from board with gen and sorts by priority
    RETURNS: a tuple consisting of a ShootList of all cells with state NotChecked and StdGen
-   EXAMPLES: filterShootList array ((0,0),(2,2)) [((0,0),Empty NotChecked),
+   EXAMPLES: filterShootList (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
                              ((0,1),Empty Checked),((0,2),Empty NotChecked),
                              ((1,0),Ship Checked),((1,1),Ship Checked),
                              ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
@@ -432,21 +432,36 @@ isShip :: (CellCoord,Cell) -> Bool
 isShip (_, Ship NotChecked) = True
 isShip _ = False
 
-{- aiShootAux (board,stack,hits) sl
+{- aiShootAux (board,stack) sl
    checks first cell in stack
-   PRE: ShootList is not empty
-   RETURNS: (board,stack,hits) where first cell in stack is checked in board
-   EXAMPLES:
+   PRE: Stack is not empty, ShootList is not empty
+   RETURNS: (board,stack) where first cell in stack is checked in board
+   EXAMPLES: aiShootAux (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                        ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],[((1,0),Empty NotChecked)]) 
+                        [((0,0),Ship NotChecked),((1,1),Empty NotChecked)] 
+                        == (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                           ((1,0),Empty Checked),((1,1),Empty NotChecked)],[])
 -}
 aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
 aiShootAux (b, s@(coord,cell):st)  l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st))
                                      | otherwise = (checkCell b coord, st)
 
-{- aiShootAux (board,stack,hits) gen
+{- aiShoot (board,stack) gen
    checks first cell in stack
    PRE: ShootList is not empty
-   RETURNS: ((board,stack,hits),gen) where first cell in stack is checked in board
-   EXAMPLES: 
+   RETURNS: ((board,stack),gen) where first cell in stack is checked in board
+   EXAMPLES: aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                     ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],
+                     [((1,0),Empty NotChecked)]) (mkStdGen 10) 
+                     == ((array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                        ((1,0),Empty Checked),((1,1),Empty NotChecked)],[]),StdGen 
+                        {unStdGen = SMGen 9076629564743049838 614480483733483467})
+             aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                     ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],
+                     []) (mkStdGen 10) 
+                     == ((array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                        ((1,0),Empty Checked),((1,1),Empty NotChecked)],[]),StdGen 
+                        {unStdGen = SMGen 9076629564743049838 614480483733483467})
 -}
 aiShoot :: (Board,Stack) -> StdGen -> ((Board, Stack), StdGen)
 aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList) newList,newGen)
@@ -514,36 +529,36 @@ cellCount cell board = length $ filter (==cell) (elems board)
  
 
 -- placing --
---test1 = TestCase $ assertEqual "placeShip: increasing correct ammount of ship-cells on board" (shipsCount initBoard + 5) (shipsCount b)
---        where b = (gameBoardUser (placeShip initGame (0,0) 5 Horizontal))
---test2 = TestCase $ assertEqual "placeShip edgeCase: shipsize 0" initGame (placeShip initGame (0,0) 0 Vertical)
---test3 = TestCase $ assertEqual "placeShip edgeCase: start position outside of board" initGame (placeShip initGame (-1,-1) 0 Vertical)
---test4 = TestCase $ assertEqual "placeShip edgeCase: end position outside of board" initGame (placeShip initGame (9,9) 5 Horizontal)
+test1 = TestCase $ assertEqual "placeShip: increasing correct ammount of ship-cells on board" (shipsCount initBoard + 5) (shipsCount b)
+        where b = (gameBoardUser (placeShip initGame (0,0) 5 Horizontal))
+test2 = TestCase $ assertEqual "placeShip edgeCase: shipsize 0" initGame (placeShip initGame (0,0) 0 Vertical)
+test3 = TestCase $ assertEqual "placeShip edgeCase: start position outside of board" initGame (placeShip initGame (-1,-1) 0 Vertical)
+test4 = TestCase $ assertEqual "placeShip edgeCase: end position outside of board" initGame (placeShip initGame (9,9) 5 Horizontal)
 
 -- placingAI --
---test5 = TestCase $ assertEqual "placeMultipleShipsAI: correct total ship-cells" 17 (shipsCount b)
---        where b = fst $ placeMultipleShipsAI (mkStdGen 10) initBoard initShips
+test5 = TestCase $ assertEqual "placeMultipleShipsAI: correct total ship-cells" 17 (shipsCount b)
+        where b = fst $ placeMultipleShipsAI (mkStdGen 10) initBoard initShips
 
--- shooting --
---test6 = TestCase $ assertEqual "playerShoot: shooting empty cell " (Empty Checked) (getCell (gameBoardAI (playerShoot initGame (0,0))) (0,0))
+--shooting --
+test6 = TestCase $ assertEqual "playerShoot: shooting empty cell " (Empty Checked) (getCell (gameBoardAI (playerShoot initGame (0,0))) (0,0))
 
---test7 = TestCase $ assertEqual "aiShoot: increasing shot cells" 1  (cellCount (Empty Checked) b)
---        where ((b, _, _),_)= aiShoot (initBoard, [], initBoard) (mkStdGen 10)
+test7 = TestCase $ assertEqual "aiShoot: increasing shot cells" 1  (cellCount (Empty Checked) b)
+        where ((b, _, _),_)= aiShoot (initBoard, [], initBoard) (mkStdGen 10)
 
---test8 = TestCase $ assertEqual "aiShoot: shooting ship" 1 (cellCount (Ship Checked) b)
---        where ((b, _, _),_)= aiShoot (shipBoard, [], initBoard) (mkStdGen 10)
---              shipBoard = array ((0, 0), (9,9)) $ zip (range ((0, 0), (9,9))) (repeat $ Ship NotChecked)
+test8 = TestCase $ assertEqual "aiShoot: shooting ship" 1 (cellCount (Ship Checked) b)
+        where ((b, _, _),_)= aiShoot (shipBoard, [], initBoard) (mkStdGen 10)
+              shipBoard = array ((0, 0), (9,9)) $ zip (range ((0, 0), (9,9))) (repeat $ Ship NotChecked)
 
 
 -- run --
---tests = TestList    [ test1
---                    , test2
---                    , test3
---                    , test4
---                    , test5
---                    , test6
---                    , test7
---                    , test8
---                    ]
+tests = TestList    [ test1
+                    , test2
+                    , test3
+                    , test4
+                    , test5
+                    , test6
+                    , test7
+                    , test8
+                    ]
 
---runtests = runTestTT $ tests
+runtests = runTestTT $ tests
