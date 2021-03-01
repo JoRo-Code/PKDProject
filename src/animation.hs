@@ -12,11 +12,7 @@ import Game
                     showBool                        -> hides explosion at end radius
 
                     increasing angle of radius      -> spinning radar
-
-
-                
-                
-                
+                    
 -}
 animationFunc :: Float -> Game -> Game
 animationFunc dt game  = game {shootAnimation = (hitShip, newRadius r d, pos, end, newD d, showExplosion r b),
