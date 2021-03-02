@@ -31,7 +31,7 @@ radarThickness = 3
 
 {- crossPicture
     creates a cross with respect to grid-size
-    Credit to Tsoding. Modified the function to be flexible with grid-size
+    Credit to Tsoding. His function is modified to be flexible with grid-size
     https://github.com/tsoding/profun/blob/master/functional/src/Rendering.hs
     RETURNS: picture of a cross proportional to mininum of cellWidth and cellHeight
     EXAMPLES: 
@@ -60,7 +60,7 @@ shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
 
 {- boardGrid boardpos
     creates a picture of a grid at boardpos
-    Credit to Tsoding. Modified the function to be flexible with multiple grids
+    Credit to Tsoding. His function is modified to be flexible with multiple grids
     https://github.com/tsoding/profun/blob/master/functional/src/Rendering.hs
     RETURNS: picture of grid at boardpos with global n rows and n columns.
     EXAMPLES: 
@@ -231,10 +231,13 @@ displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTra
 
 {- snapPictureTocell pic boardpos coord
     puts a picture to a specific cell's screencoordinates.
-    Credit to Tsoding. Modified the function to be flexible with multiple grids
+    Credit to Tsoding. His function is modified to be flexible with multiple grids
     https://github.com/tsoding/profun/blob/master/functional/src/Rendering.hs
-
+    PRE: valid coord
     RETURNS: pic positioned at coord in grid by boardpos 
+    EXAMPLES: 
+               snapPictureToCell crossPicture boardAIPos (0,0)  -> puts a cross on cell (0,0), bottom left corner of gameBoardAI
+               snapPictureToCell shipPicture boardUserPos (0,0) -> puts a ship on cell (0,0), bottom left corner of gameBoardUser
  -} 
 snapPictureToCell :: Picture -> BoardPos -> CellCoord -> Picture
 snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y picture
@@ -243,7 +246,14 @@ snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y pict
           
 
 
-{- cellsToPicture
+{- cellsToPicture board boardpos cellContent pic
+    puts pic on all cells in board with cellContent
+    Credit to Tsoding. His function is modified to be flexible with multiple grids
+    https://github.com/tsoding/profun/blob/master/functional/src/Rendering.hs
+    RETURNS: picture with pic on all cells with cellContent of board with boardpos
+    EXAMPLES: 
+               cellsToPicture (gameBoardUser initGame) boardUserPos (Empty Checked) crossPicture    -> Blank
+               cellsToPicture (gameBoardUser initGame) boardUserPos (Empty NotChecked) crossPicture -> crosses on each cell-location in boardUserPos
 
 -}
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
@@ -252,8 +262,12 @@ cellsToPicture board pos c pic =  pictures
                             $ filter (\(_, e) -> e == c)
                             $ assocs board                                                              
 
-{- displayCells 
-
+{- displayCells board boardpos show
+    handles case of not showing unhit AI-ships to user.
+    RETURNS: picture of all cells of board with boardpos except unhit AI-ships if show is false, else shows all cells on a board with boardpos
+    EXAMPLES: 
+                displayCells (gameBoardUser initGame) boardUserPos True  -> shows all cells of userBoard (hits, misses, unchecked, ships)
+                displayCells (gameBoardUser initGame) boardUserPos False -> shows all cells of userBoard except unhit ships (hits, misses, unchecked)
 -}
 displayCells :: Board -> BoardPos -> Bool -> Picture
 displayCells board pos show = pictures 
@@ -263,8 +277,11 @@ displayCells board pos show = pictures
                                 ]
 
 {- moveExplosion r pos show
-    RETURNS: 
-
+    handles case of not showing explosion while not klicking. 
+    Reverts final translation in drawGame -> pos corresponds to (x,y) on screen in window.
+    RETURNS: translated (explosionPicture of radius r at pos) up to the right half screenWidth and screenHeight if show, else Blank
+    EXAMPLES: 
+                moveExplosion 30 (0,0) True -> circle of radius 30 at screencoords (0+screenWidth/2, 0+screenHeight/2)
 
 -}
 moveExplosion :: Radius -> ScreenCoord -> Bool -> Picture 
@@ -274,7 +291,16 @@ moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate 
 
 {- gameToPicture game
     turns game into a picture with lower left corner in the middle of the screen
-    RETURNS: a picture representation of game with lower left corner in the middle of the screen 
+    Credit to Tsoding. His function is modified to be flexible with multiple grids and bigger game datatype
+    https://github.com/tsoding/profun/blob/master/functional/src/Rendering.hs
+    RETURNS: picture representation of game with lower left corner in the middle of the screen
+    EXAMPLES: 
+                gameToPicture initGame ->  lower left corner of picture beginning in the middle of the screen
+                                            where picture includes:
+                                                two empty boardgrids each with a spinning radar. 
+                                                User information between boards. 
+                                                Displaying first ship on the left board.
+
 -}
 gameToPicture :: Game -> Picture
 gameToPicture game =
@@ -298,8 +324,16 @@ gameToPicture game =
 
 
 {- drawGame game 
-    transforms game into a picture
+    transforms game into a picture, translates everything to the lower left corner
+    Credit to Tsoding. His function is modified to be flexible with multiple grids and bigger game datatype
+    https://github.com/tsoding/profun/blob/master/functional/src/Rendering.hs
     RETURNS: picture representation of game with lower left corner in the lower left of the screen. 
+    EXAMPLES: 
+                drawGame initGame ->  lower left corner of picture beginning in the lower left of the screen
+                                            where picture includes:
+                                                two empty boardgrids each with a spinning radar. 
+                                                User information between boards. 
+                                                Displaying first ship on the left board.
 -}
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))
