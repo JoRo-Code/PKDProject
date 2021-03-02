@@ -52,7 +52,7 @@ movingShipPicture (c, r) Vertical s   =  translate (cellWidth * (fromIntegral c 
 explosionPicture :: Radius -> Picture
 explosionPicture r = thickCircle r 10
 
-moveExplosion :: Radius -> Pos -> Bool -> Picture 
+moveExplosion :: Radius -> ScreenCoord -> Bool -> Picture 
 moveExplosion _ _ False = Blank
 moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
 
