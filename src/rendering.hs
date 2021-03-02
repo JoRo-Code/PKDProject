@@ -21,7 +21,7 @@ radarColor :: Color
 radarColor = makeColorI 0 140 0 255
 
 
-
+-- thickness of radarcircles
 radarThickness :: Float
 radarThickness = 3
 
@@ -133,8 +133,8 @@ explosionPicture r = thickCircle r 10
 fadedArc :: Int -> Float -> Picture
 fadedArc angle r = 
     pictures
-    $ concatMap (\i -> [color  (makeColorI 0 (i*255 `div` angle) 0 255)  $ rotate (fromIntegral i) $ arcSolid 0 1 r]
-    )
+    $ concatMap (\i -> [color  (makeColorI 0 (i*255 `div` angle) 0 255)  
+                $ rotate (fromIntegral i) $ arcSolid 0 1 r])
     [0 .. angle]
 
 
@@ -163,38 +163,44 @@ radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =
 ---------------------------- Info to user ----------------------------
 
 
-combineDisplayText :: BoardPos -> GameStage -> Maybe Player -> Round -> Stats -> Picture
-combineDisplayText pos stage winner round stats = pictures [if winner == Nothing then displayGameStage pos stage else Blank, displayWinner pos winner, 
-                                                            if winner == Nothing then displayInstructions pos stage else Blank, 
-                                                            if winner == Nothing then Blank else displayRestartInstructions pos,
-                                                            if stage == Placing User then displayArrowInstruction pos "<---- Place here" 
-                                                            else displayArrowInstruction pos "Shoot here ---->",
-                                                            displayCurrentRound pos round, displayStats pos stats ]
-displayGameName :: BoardPos -> Picture
-displayGameName ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y2 - 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
-                                                    where sc = screenDivider / 900
-                                                          s = "BATTLESHIPS"
+
+
+
+
+                                                  
+
+
+
+
+
+
+
+displayStats :: BoardPos -> Stats -> Picture
+displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTranslate (y2 - 0.7 * screenDivider) $ pic "User wins: " n1, 
+                                                                  translate xTranslate (y2 - 0.85 * screenDivider) $ pic "AI wins: " n2]
+                                                        where sc = screenDivider / 1100
+                                                              xTranslate = x2 + 0.1 * screenDivider
+                                                              pic s stat = pictures [scale sc sc $ text $ s ++ show stat]
+                                                  
+                                                     
+displayCurrentRound :: BoardPos -> Round -> Picture
+displayCurrentRound ((x1,y1),(x2,y2)) round = translate (x2 + 0.1 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
+                                                        where sc = screenDivider / 1100
+
+
 
 displayArrowInstruction  :: BoardPos -> String -> Picture
 displayArrowInstruction ((x1,y1),(x2,y2)) s = translate (x2 + 0.05 * screenDivider) (y1 + 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 1400
-                                                  
 
-displayGameStage :: BoardPos -> GameStage -> Picture
-displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) (y2 - 0.4 * screenDivider) $ pictures [scale sc sc $ text s]
-                                                    where sc = screenDivider / 1100
-                                                          s = case stage of
-                                                              Placing User  -> "Place ships!"
-                                                              Shooting User -> "Shoot enemy!"
-
-displayWinner :: BoardPos -> Maybe Player-> Picture
-displayWinner  _ Nothing = Blank
-displayWinner ((x1,y1),(x2,y2)) player  = translate (x2 + 0.1 * screenDivider) (y2 - 0.4* screenDivider) $ pictures [scale sc sc $ text s]
-                                         where sc = screenDivider / 1100
-                                               s = case player of
-                                                   Just User -> "You won!"
-                                                   Just AI   -> "You lost!"
-
+displayRestartInstructions :: BoardPos -> Picture
+displayRestartInstructions ((x1,y1),(x2,y2)) = pictures $ concatMap  
+                                               (\i -> [translate xTranslate (y2 - (1 + 0.1 * fromIntegral i) * screenDivider) 
+                                               $ scale sc sc $ text $ strings !! i]) 
+                                               [0..length strings - 1]
+                                               where sc = screenDivider / 2200
+                                                     strings = ["Left mouse button to", "play next round,", "escape to quit"]
+                                                     xTranslate = x2 + 0.1 * screenDivider   
 
 
 displayInstructions :: BoardPos -> GameStage -> Picture
@@ -204,29 +210,59 @@ displayInstructions ((x1,y1),(x2,y2)) stage = pictures $ concatMap
                                                [0..length strings - 1]
                                                where sc = screenDivider / 2200
                                                      strings =  case stage of
-                                                                             Placing User -> ["Move ship with arrow keys,", "rotate with r and ", "confirm placement with enter"]
+                                                                             Placing User  ->   ["Move ship with arrow keys,"
+                                                                                                , "rotate with r and "
+                                                                                                , "confirm placement with enter"
+                                                                                                ]
                                                                              Shooting User -> ["Click on a cell on", "the enemy's board to shoot"]
                                                      xTranslate = x2 + 0.1 * screenDivider  
 
-displayRestartInstructions :: BoardPos -> Picture
-displayRestartInstructions ((x1,y1),(x2,y2)) = pictures $ concatMap  
-                                               (\i -> [translate xTranslate (y2 - (1 + 0.1 * fromIntegral i) * screenDivider) 
-                                               $ scale sc sc $ text $ strings !! i]) 
-                                               [0..length strings - 1]
-                                               where sc = screenDivider / 2200
-                                                     strings = ["Left mouse button to", "play next round,", "escape to quit"]
-                                                     xTranslate = x2 + 0.1 * screenDivider                                                     
-                                                     
-displayCurrentRound :: BoardPos -> Round -> Picture
-displayCurrentRound ((x1,y1),(x2,y2)) round = translate (x2 + 0.1 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
-                                                        where sc = screenDivider / 1100
+displayWinner :: BoardPos -> Maybe Player-> Picture
+displayWinner  _ Nothing = Blank
+displayWinner ((x1,y1),(x2,y2)) player  = translate (x2 + 0.1 * screenDivider) (y2 - 0.4* screenDivider) $ pictures [scale sc sc $ text s]
+                                         where sc = screenDivider / 1100
+                                               s = case player of
+                                                   Just User -> "You won!"
+                                                   Just AI   -> "You lost!"
 
-displayStats :: BoardPos -> Stats -> Picture
-displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTranslate (y2 - 0.7 * screenDivider) $ pic "User wins: " n1, 
-                                                                  translate xTranslate (y2 - 0.85 * screenDivider) $ pic "AI wins: " n2]
-                                                        where sc = screenDivider / 1100
-                                                              xTranslate = x2 + 0.1 * screenDivider
-                                                              pic s stat = pictures [scale sc sc $ text $ s ++ show stat]
+displayGameStage :: BoardPos -> GameStage -> Picture
+displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) (y2 - 0.4 * screenDivider) $ pictures [scale sc sc $ text s]
+                                                    where sc = screenDivider / 1100
+                                                          s = case stage of
+                                                              Placing User  -> "Place ships!"
+                                                              Shooting User -> "Shoot enemy!"
+
+
+{- combineDisplayText boardpos gamestage winner round stats
+    
+ 
+-}
+combineDisplayText :: BoardPos -> GameStage -> Maybe Player -> Round -> Stats -> Picture
+combineDisplayText pos stage winner round stats = pictures [if winner == Nothing then displayGameStage pos stage else Blank
+                                                            , displayWinner pos winner
+                                                            , if winner == Nothing then displayInstructions pos stage else Blank
+                                                            , if winner == Nothing then Blank else displayRestartInstructions pos
+                                                            , if stage == Placing User then displayArrowInstruction pos "<---- Place here" 
+                                                                                       else displayArrowInstruction pos "Shoot here ---->"
+                                                            , displayCurrentRound pos round
+                                                            , displayStats pos stats 
+                                                            ]
+
+{- displayGameName boardpos
+    displays the name of the game in position in relation to leftboard
+    RETURNS: picture with BATTLESHIPS in a position in relation to boardpos
+    EXAMPLES:
+                displayGameName boardUserPos == Translate 585.0 510.0 (Pictures [Scale 0.33333334 0.33333334 (Text "BATTLESHIPS")])
+                                             -> picture with BATTLESHIPS in the middle upper part of the screen
+
+-}
+
+displayGameName :: BoardPos -> Picture
+displayGameName ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y2 - 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
+                                                    where sc = screenDivider / 900
+                                                          s = "BATTLESHIPS"
+
+---------------------------- Combining picture components and positioning ----------------------------
 
 
 {- snapPictureTocell pic boardpos coord
