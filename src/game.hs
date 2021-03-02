@@ -57,9 +57,11 @@ data Game = Game { gameBoardUser :: Board ,
                  } deriving (Show, Eq)
 
 
+type BoardPos = (ScreenCoord, ScreenCoord)
+
 
 screenWidth :: Float
-screenWidth = 1500
+screenWidth = 1440
 screenHeight :: Float
 screenHeight = (screenWidth - screenDivider) / 2
 
@@ -78,6 +80,11 @@ boardWidth :: Float
 boardWidth = (screenWidth - screenDivider) / 2
 boardHeight :: Float
 boardHeight = screenHeight
+
+boardAIPos :: BoardPos
+boardAIPos = ((screenWidth * 0.5 + screenDivider * 0.5 ,0), (screenWidth, screenHeight))
+boardUserPos :: BoardPos
+boardUserPos = ((0,0), (screenWidth * 0.5 - screenDivider * 0.5, screenHeight))
 
 
 

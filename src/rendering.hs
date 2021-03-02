@@ -4,10 +4,9 @@ import Graphics.Gloss
 import Data.Array
 import Game
 
+-- object colors
+boardGridColor :: Color
 boardGridColor = makeColorI 0 100 0 255
-
-type BoardPos = (ScreenCoord, ScreenCoord)
-
 textColor :: Color
 textColor = white
 missColor :: Color
@@ -21,17 +20,11 @@ movingShipColor = makeColorI 128 128 128 200
 radarColor :: Color
 radarColor = makeColorI 0 140 0 255
 
+radarThickness :: Float
 radarThickness = 3
 
 
 
---------------------- Solving cellWidth and cellHeight problem ---------------------
-
-boardAIPos :: BoardPos
-boardAIPos = ((screenWidth * 0.5 + screenDivider * 0.5 ,0), (screenWidth, screenHeight))
-
-boardUserPos :: BoardPos
-boardUserPos = ((0,0), (screenWidth * 0.5 - screenDivider * 0.5, screenHeight))
 
 {- puts a picture to a specific cell's screenCoordinates -} 
 snapPictureToCell :: Picture -> BoardPos -> CellCoord -> Picture
@@ -63,18 +56,6 @@ moveExplosion :: Radius -> Pos -> Bool -> Picture
 moveExplosion _ _ False = Blank
 moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
 
-radarPicture :: Radar -> BoardPos ->  Picture
-radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =     
-    translate (0.5 * (x1 + x2)) (0.5 * (y1 + y2)) 
-    (pictures 
-    [
-     rotate angle $ fadedArc 90 maxRadius green ,
-     rotate 45.0 angleLine, rotate (-45.0) angleLine,
-     pictures $ concatMap (\radius -> [thickCircle radius radarThickness]) radiuses
-    ]) 
-    where angleLine = line [(-maxRadius,0) ,(maxRadius, 0)]
-          maxRadius = maximum radiuses
-
 
 {- fadedArc angle r color
     creates a faded arc picture with angle and r of color
@@ -87,14 +68,22 @@ fadedArc angle r c =
     )
     [0 .. angle]
 
+radarPicture :: Radar -> BoardPos ->  Picture
+radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =     
+    translate (0.5 * (x1 + x2)) (0.5 * (y1 + y2)) 
+    (pictures 
+    [
+     rotate angle $ fadedArc 90 maxRadius green ,
+     rotate 45.0 angleLine, rotate (-45.0) angleLine,
+     pictures $ concatMap (\radius -> [thickCircle radius radarThickness]) radiuses
+    ]) 
+    where angleLine = line [(-maxRadius,0) ,(maxRadius, 0)]
+          maxRadius = maximum radiuses
 
+{- boarsGrid boardpos
+    creates a picture of a grid at boardpos
 
-cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
-cellsToPicture board pos c pic =  pictures
-                            $ map (snapPictureToCell pic pos . fst)
-                            $ filter (\(_, e) -> e == c)
-                            $ assocs board
-
+-}
 boardGrid :: BoardPos -> Picture
 boardGrid boardPos@((x1,y1),(x2,y2)) =
     pictures
@@ -173,20 +162,37 @@ displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTra
                                                         where sc = screenDivider / 1100
                                                               xTranslate = x2 + 0.1 * screenDivider
                                                               pic s stat = pictures [scale sc sc $ text $ s ++ show stat]
-                                                              
 
+cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
+cellsToPicture board pos c pic =  pictures
+                            $ map (snapPictureToCell pic pos . fst)
+                            $ filter (\(_, e) -> e == c)
+                            $ assocs board                                                              
+
+{- displayCells 
+
+-}
 displayCells :: Board -> BoardPos -> Bool -> Picture
-displayCells board pos show = pictures [color missColor $ cellsToPicture board pos (Empty Checked) crossPicture, 
-                               color hitColor  $ cellsToPicture board pos (Ship Checked) shipPicture, 
-                               if show then color shipColor $ cellsToPicture board pos (Ship NotChecked) 
-                               shipPicture else Blank
- ]
+displayCells board pos show = pictures 
+                                [color missColor $ cellsToPicture board pos (Empty Checked) crossPicture
+                               , color hitColor  $ cellsToPicture board pos (Ship Checked) shipPicture
+                               , if show then color shipColor $ cellsToPicture board pos (Ship NotChecked) shipPicture else Blank
+                                ]
 
+{- showPlacingShip ships
+    transforms head of ships into a moving picture
+    RETURNS: picture representation of head of ships, Blank if ships is empty.
+
+-}
 showPlacingShip :: Ships -> Picture
 showPlacingShip [] = Blank
 showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s 
 
 
+{- gameToPicture game
+    turns game into a picture with lower left corner in the middle of the screen
+    RETURNS: a picture representation of game with lower left corner in the middle of the screen 
+-}
 gameToPicture :: Game -> Picture
 gameToPicture game =
     pictures [color radarColor $ pictures [radarPicture radar boardUserPos, radarPicture radar boardAIPos],
@@ -207,6 +213,11 @@ gameToPicture game =
                    (ishit, r, pos,_, _,b) =  shootAnimation game
                    radar = radarAnimation game
 
+
+{- drawGame game 
+    transforms game into a picture
+    RETURNS: a picture representation of game with lower left corner in the lower left of the screen. 
+-}
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))
                           (screenHeight * (-0.5))
