@@ -7,31 +7,31 @@ import System.Random
     Checked means the square has been shot at.
     NotChecked means the square has not been shot at.
 -}
-data SquareState  = Checked           | NotChecked                 deriving (Show, Eq)
+data SquareState = Checked | NotChecked deriving (Show, Eq)
 
 {- Information regarding a cell. 
     - Empty means the cell does not contain a ship.
     - Ship means the cell contains a ship.
     - SquareState gives the state of the cell.
 -}
-data Cell         = Empty SquareState | Ship SquareState           deriving (Show, Eq)
+data Cell = Empty SquareState | Ship SquareState deriving (Show, Eq)
 
 {- Represents current player.
     - User means it is the user currently playing.
     - AI means it is the AI currently playing.
 -}
-data Player       = User              | AI                         deriving (Show, Eq)
+data Player = User | AI deriving (Show, Eq)
 
 {- The current stage of the game and the current player.
      - Placing means the current player can place ships.
      - Shooting means the current player can shoot.
      - Player represents the current player.
 -}
-data GameStage    = Placing Player    | Shooting Player            deriving (Show, Eq)
+data GameStage = Placing Player | Shooting Player deriving (Show, Eq)
 
 {- Represents the direction of a ship.
 -}
-data Direction    = Horizontal        | Vertical                   deriving (Show, Eq)  
+data Direction = Horizontal | Vertical deriving (Show, Eq)  
 
 {- The number of a row on the board.
 -}
@@ -142,20 +142,18 @@ type Radar = ([Radius], Angle)
      ... description of how the datatype represents data ...
      INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
 -}
-data Game = Game { gameBoardUser :: Board , 
-                   gameBoardAI   :: Board,
-                   gameStage     :: GameStage,
-                   shipsUser     :: Ships,
-                   stackAI       :: Stack,
-                   winner        :: Maybe Player,
-                   gen           :: StdGen,
-                   currentRound  :: Round,
-                   stats         :: Stats,
-                   -- Animation
-                   -- radius, position of centre of wave, end radius of wave, derivative, showBool
+data Game = Game { gameBoardUser  :: Board , 
+                   gameBoardAI    :: Board,
+                   gameStage      :: GameStage,
+                   shipsUser      :: Ships,
+                   stackAI        :: Stack,
+                   winner         :: Maybe Player,
+                   gen            :: StdGen,
+                   currentRound   :: Round,
+                   stats          :: Stats,
                    shootAnimation :: (HitShip, Radius, Pos, Radius, Derivative, Bool),
                    radarAnimation :: Radar,
-                   radarAngle          :: Angle
+                   radarAngle     :: Angle
                  } deriving (Show, Eq)
 
 
@@ -190,7 +188,7 @@ startDerivative = screenWidth/2
 
 
 n :: BoardSize
-n = 3
+n = 10
 
 -- Create a new board, a 2d array, where all cells are empty notchecked initially.   
 
@@ -234,7 +232,6 @@ initGame = Game { gameBoardUser = initBoard,
                   gen           = mkStdGen 100,
                   currentRound  = 1,
                   stats         = ((User, 0), (AI, 0)),
-
                   -- Animation
                   shootAnimation = (False, startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
                   radarAnimation = radarInitial,

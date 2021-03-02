@@ -11,7 +11,7 @@ import Rendering
 
 import Data.List
 import Debug.Trace
-import Test.HUnit
+--import Test.HUnit
 
 
 
@@ -599,18 +599,19 @@ aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList) newLis
     handles all input from user
     RETURNS: game with possible modifications decided by event
 -}
+
 eventHandler :: Event -> Game -> Game
-eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game  = 
+eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game =
      case gameStage game of 
          Placing User -> confirmShip game
          _            -> game
 
-eventHandler (EventKey (SpecialKey key) Down _ _) game       = 
+eventHandler (EventKey (SpecialKey key) Down _ _) game =
     case gameStage game of 
         Placing User -> moveShip game key
         _            -> game
 
-eventHandler (EventKey (Char 'r') Down _ _) game             = 
+eventHandler (EventKey (Char 'r') Down _ _) game =             
     case gameStage game of 
          Placing User -> rotateShip game
          _            -> game
@@ -618,11 +619,13 @@ eventHandler (EventKey (Char 'r') Down _ _) game             =
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
 
     case (winner game, gameStage game) of
-         (Nothing, Shooting User) -> playerShoot game {shootAnimation = (hitShip (gameBoardAI game) coord,startRadius, mousePos, end, startDerivative, performAnimation)} coord -- should change gamestage to shooting AI
+         (Nothing, Shooting User) -> playerShoot game {shootAnimation = (hitShip (gameBoardAI game) coord,startRadius, 
+                                                       mousePos, end, startDerivative, performAnimation)} coord 
                                                 where (_,_,_, end, _, _) = shootAnimation game
                                                       coord = mouseToCell mousePos boardAIPos
-                                                      performAnimation = isWithinBoard boardAIPos mousePos && getState (gameBoardAI game) coord == NotChecked
-         (_, Shooting User) -> initGame {gameBoardAI = newBoard
+                                                      performAnimation = isWithinBoard boardAIPos mousePos 
+                                                                         && getState (gameBoardAI game) coord == NotChecked
+         _ -> initGame {gameBoardAI = newBoard
                                         , gen = newGen
                                         , currentRound = currentRound game + 1
                                         , stats = stats game
@@ -652,7 +655,7 @@ cellCount ::  Cell -> Board -> Int
 cellCount cell board = length $ filter (==cell) (elems board)
 ----------------------------- TESTCASES --------------------------------
  
-
+{-
 -- placing --
 test1 = TestCase $ assertEqual "placeShip: increasing correct ammount of ship-cells on board" (shipsCount initBoard + 5) (shipsCount b)
         where b = (gameBoardUser (placeShip initGame (0,0) 5 Horizontal))
@@ -687,3 +690,5 @@ tests = TestList    [ test1
                     ]
 
 runtests = runTestTT $ tests
+
+-}
