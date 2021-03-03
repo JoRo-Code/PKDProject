@@ -10,7 +10,7 @@ import Rendering
 
 import Data.List
 import Debug.Trace
---import Test.HUnit
+import Test.HUnit
 
 
 
@@ -665,7 +665,7 @@ cellCount ::  Cell -> Board -> Int
 cellCount cell board = length $ filter (==cell) (elems board)
 ----------------------------- TESTCASES --------------------------------
  
-{-
+
 
 test9 = TestCase $ assertEqual "validCoordinates: coordinates out of bounds" False (validCoordinates (2,11))
 test10 = TestCase $ assertEqual "endCoordinates: vertical placement" (5,4) (endCoordinates (5,6) 3 Vertical)
@@ -676,7 +676,7 @@ test14 = TestCase $ assertEqual "placeShipAux: place a horizontal ship" (array (
 test15 = TestCase $ assertEqual "mouseToCell: screenWidth 1440" (14,5) (mouseToCell (100, 40) ((0.0,0.0),(600.0,600.0)))
 test16 = TestCase $ assertEqual "getCell" (Empty NotChecked) (getCell initBoard (0,0))
 test17 = TestCase $ assertEqual "checkCell" (array ((0,0),(9,9)) [((0,0),Empty Checked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),((0,3),Empty NotChecked),((0,4),Empty NotChecked),((0,5),Empty NotChecked),((0,6),Empty NotChecked),((0,7),Empty NotChecked),((0,8),Empty NotChecked),((0,9),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((1,3),Empty NotChecked),((1,4),Empty NotChecked),((1,5),Empty NotChecked),((1,6),Empty NotChecked),((1,7),Empty NotChecked),((1,8),Empty NotChecked),((1,9),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked),((2,3),Empty NotChecked),((2,4),Empty NotChecked),((2,5),Empty NotChecked),((2,6),Empty NotChecked),((2,7),Empty NotChecked),((2,8),Empty NotChecked),((2,9),Empty NotChecked),((3,0),Empty NotChecked),((3,1),Empty NotChecked),((3,2),Empty NotChecked),((3,3),Empty NotChecked),((3,4),Empty NotChecked),((3,5),Empty NotChecked),((3,6),Empty NotChecked),((3,7),Empty NotChecked),((3,8),Empty NotChecked),((3,9),Empty NotChecked),((4,0),Empty NotChecked),((4,1),Empty NotChecked),((4,2),Empty NotChecked),((4,3),Empty NotChecked),((4,4),Empty NotChecked),((4,5),Empty NotChecked),((4,6),Empty NotChecked),((4,7),Empty NotChecked),((4,8),Empty NotChecked),((4,9),Empty NotChecked),((5,0),Empty NotChecked),((5,1),Empty NotChecked),((5,2),Empty NotChecked),((5,3),Empty NotChecked),((5,4),Empty NotChecked),((5,5),Empty NotChecked),((5,6),Empty NotChecked),((5,7),Empty NotChecked),((5,8),Empty NotChecked),((5,9),Empty NotChecked),((6,0),Empty NotChecked),((6,1),Empty NotChecked),((6,2),Empty NotChecked),((6,3),Empty NotChecked),((6,4),Empty NotChecked),((6,5),Empty NotChecked),((6,6),Empty NotChecked),((6,7),Empty NotChecked),((6,8),Empty NotChecked),((6,9),Empty NotChecked),((7,0),Empty NotChecked),((7,1),Empty NotChecked),((7,2),Empty NotChecked),((7,3),Empty NotChecked),((7,4),Empty NotChecked),((7,5),Empty NotChecked),((7,6),Empty NotChecked),((7,7),Empty NotChecked),((7,8),Empty NotChecked),((7,9),Empty NotChecked),((8,0),Empty NotChecked),((8,1),Empty NotChecked),((8,2),Empty NotChecked),((8,3),Empty NotChecked),((8,4),Empty NotChecked),((8,5),Empty NotChecked),((8,6),Empty NotChecked),((8,7),Empty NotChecked),((8,8),Empty NotChecked),((8,9),Empty NotChecked),((9,0),Empty NotChecked),((9,1),Empty NotChecked),((9,2),Empty NotChecked),((9,3),Empty NotChecked),((9,4),Empty NotChecked),((9,5),Empty NotChecked),((9,6),Empty NotChecked),((9,7),Empty NotChecked),((9,8),Empty NotChecked),((9,9),Empty NotChecked)]) (checkCell initBoard (0,0))
-test18 = TestCase $ assertEqual "getCell" (NotChecked) (getState initBoard (0,0))
+test18 = TestCase $ assertEqual "getState" (NotChecked) (getState initBoard (0,0))
 test19 = TestCase $ assertEqual "hitShip" False (hitShip initBoard (0,0))
 test20 = TestCase $ assertEqual "isWithinBoard" True (isWithinBoard ((900.0,0.0),(1500.0,600.0)) (200, 100))
 test21 = TestCase $ assertEqual "isChecked" False (isChecked initBoard (0,0))
@@ -685,12 +685,13 @@ test23 = TestCase $ assertEqual "updateStats: user win" ((User,2),(AI,1)) (updat
 test24 = TestCase $ assertEqual "allCoords: n = 10" ([(0,0),(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(0,7),(0,8),(0,9),(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7),(1,8),(1,9),(2,0),(2,1),(2,2),(2,3),(2,4),(2,5),(2,6),(2,7),(2,8),(2,9),(3,0),(3,1),(3,2),(3,3),(3,4),(3,5),(3,6),(3,7),(3,8),(3,9),(4,0),(4,1),(4,2),(4,3),(4,4),(4,5),(4,6),(4,7),(4,8),(4,9),(5,0),(5,1),(5,2),(5,3),(5,4),(5,5),(5,6),(5,7),(5,8),(5,9),(6,0),(6,1),(6,2),(6,3),(6,4),(6,5),(6,6),(6,7),(6,8),(6,9),(7,0),(7,1),(7,2),(7,3),(7,4),(7,5),(7,6),(7,7),(7,8),(7,9),(8,0),(8,1),(8,2),(8,3),(8,4),(8,5),(8,6),(8,7),(8,8),(8,9),(9,0),(9,1),(9,2),(9,3),(9,4),(9,5),(9,6),(9,7),(9,8),(9,9)]) (allCoords)
 test25 = TestCase $ assertEqual "findValidDirectionalPlacements" ([((0,0),Horizontal),((0,1),Horizontal),((0,2),Horizontal),((1,0),Horizontal),((1,1),Horizontal),((1,2),Horizontal),((2,0),Horizontal),((2,1),Horizontal),((2,2),Horizontal)]) (findValidDirectionalPlacements initBoard [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)] 3 Horizontal)
 test26 = TestCase $ assertEqual "findAllValidPlacements" ([((0,0),Horizontal),((0,1),Horizontal),((0,2),Horizontal),((0,3),Horizontal),((0,4),Horizontal),((0,5),Horizontal),((0,6),Horizontal),((0,7),Horizontal),((0,8),Horizontal),((0,9),Horizontal),((1,0),Horizontal),((1,1),Horizontal),((1,2),Horizontal),((1,3),Horizontal),((1,4),Horizontal),((1,5),Horizontal),((1,6),Horizontal),((1,7),Horizontal),((1,8),Horizontal),((1,9),Horizontal),((2,0),Horizontal),((2,1),Horizontal),((2,2),Horizontal),((2,3),Horizontal),((2,4),Horizontal),((2,5),Horizontal),((2,6),Horizontal),((2,7),Horizontal),((2,8),Horizontal),((2,9),Horizontal),((3,0),Horizontal),((3,1),Horizontal),((3,2),Horizontal),((3,3),Horizontal),((3,4),Horizontal),((3,5),Horizontal),((3,6),Horizontal),((3,7),Horizontal),((3,8),Horizontal),((3,9),Horizontal),((4,0),Horizontal),((4,1),Horizontal),((4,2),Horizontal),((4,3),Horizontal),((4,4),Horizontal),((4,5),Horizontal),((4,6),Horizontal),((4,7),Horizontal),((4,8),Horizontal),((4,9),Horizontal),((5,0),Horizontal),((5,1),Horizontal),((5,2),Horizontal),((5,3),Horizontal),((5,4),Horizontal),((5,5),Horizontal),((5,6),Horizontal),((5,7),Horizontal),((5,8),Horizontal),((5,9),Horizontal),((0,4),Vertical),((0,5),Vertical),((0,6),Vertical),((0,7),Vertical),((0,8),Vertical),((0,9),Vertical),((1,4),Vertical),((1,5),Vertical),((1,6),Vertical),((1,7),Vertical),((1,8),Vertical),((1,9),Vertical),((2,4),Vertical),((2,5),Vertical),((2,6),Vertical),((2,7),Vertical),((2,8),Vertical),((2,9),Vertical),((3,4),Vertical),((3,5),Vertical),((3,6),Vertical),((3,7),Vertical),((3,8),Vertical),((3,9),Vertical),((4,4),Vertical),((4,5),Vertical),((4,6),Vertical),((4,7),Vertical),((4,8),Vertical),((4,9),Vertical),((5,4),Vertical),((5,5),Vertical),((5,6),Vertical),((5,7),Vertical),((5,8),Vertical),((5,9),Vertical),((6,4),Vertical),((6,5),Vertical),((6,6),Vertical),((6,7),Vertical),((6,8),Vertical),((6,9),Vertical),((7,4),Vertical),((7,5),Vertical),((7,6),Vertical),((7,7),Vertical),((7,8),Vertical),((7,9),Vertical),((8,4),Vertical),((8,5),Vertical),((8,6),Vertical),((8,7),Vertical),((8,8),Vertical),((8,9),Vertical),((9,4),Vertical),((9,5),Vertical),((9,6),Vertical),((9,7),Vertical),((9,8),Vertical),((9,9),Vertical)]) (findAllValidPlacements initBoard 5)
-test27 = TestCase $ assertEqual "randomElement"
+--test27 = TestCase $ assertEqual "randomElement"
 
 -- placing user --
 test1 = TestCase $ assertEqual "placeShip: increasing correct ammount of ship-cells on board" (shipsCount initBoard + 5) (shipsCount b)
-        where b = (gameBoardUser (placeShip initGame (0,0) 5 Horizontal))
-test2 = TestCase $ assertEqual "placeShip edgeCase: shipsize 0" initGame (placeShip initGame (0,0) 0 Vertical)
+        where b = (gameBoardUser (placeShip (initGame {gameBoardAI = initBoard}) (0,0) 5 Horizontal))
+test2 = TestCase $ assertEqual "placeShip edgeCase: shipsize 0" game (placeShip game (0,0) 0 Vertical)
+        where game = (initGame {gameBoardAI = initBoard})
 test3 = TestCase $ assertEqual "placeShip edgeCase: start position outside of board" initGame (placeShip initGame (-1,-1) 0 Vertical)
 test4 = TestCase $ assertEqual "placeShip edgeCase: end position outside of board" initGame (placeShip initGame (9,9) 5 Horizontal)
 
@@ -704,25 +705,27 @@ test6 = TestCase $ assertEqual "playerShoot: shooting empty cell " (Empty Checke
 
 -- shooting AI --
 
-test7 = TestCase $ assertEqual "aiShoot: increasing shot cells" 1  (cellCount (Empty Checked) b)
-        where ((b, _, _),_)= aiShoot (initBoard, [], initBoard) (mkStdGen 10)
+test7 = TestCase $ assertEqual "aiShoot: shooting empty" 1  (cellCount (Empty Checked) b)
+        where ((b, _),_)= aiShoot (initBoard, []) (mkStdGen 10)
 
 test8 = TestCase $ assertEqual "aiShoot: shooting ship" 1 (cellCount (Ship Checked) b)
-        where ((b, _, _),_)= aiShoot (shipBoard, [], initBoard) (mkStdGen 10)
+        where ((b, _),_)= aiShoot (shipBoard, []) (mkStdGen 10)
               shipBoard = array ((0, 0), (9,9)) $ zip (range ((0, 0), (9,9))) (repeat $ Ship NotChecked)
 
 
 -- run --
 tests = TestList    [ test1
                     , test2
-                    , test3
+                    {-, test3
                     , test4
                     , test5
                     , test6
                     , test7
                     , test8
+                    , test9
+                    , test10
+                    , test11
+                    , test12-}
                     ]
 
 runtests = runTestTT $ tests
-
--}
