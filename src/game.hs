@@ -103,7 +103,6 @@ type Radar = ([Radius], Angle)
      - stats represents the current user and AI stats.
      - shootAnimation holds all information for the shooting animations.
      - radarAnimation holds all information for the radar background animation.
-     - radarAngle holds information for the angle of the arc in the radar animation.
      INVARIANT: 
      - Ships cannot be placed right next to each other. 
      - Ships must not be overlapped.
@@ -111,6 +110,7 @@ type Radar = ([Radius], Angle)
      - Shots must be withing the boundaries of the board.
      - Shots cannot be fired on already shot cells.
 -}
+
 data Game = Game { gameBoardUser  :: Board , 
                    gameBoardAI    :: Board,
                    gameStage      :: GameStage,
@@ -121,8 +121,7 @@ data Game = Game { gameBoardUser  :: Board ,
                    currentRound   :: Round,
                    stats          :: Stats,
                    shootAnimation :: (HitShip, Radius, ScreenCoord, Radius, Derivative, Bool),
-                   radarAnimation :: Radar,
-                   radarAngle     :: Angle
+                   radarAnimation :: Radar
                  } deriving (Show, Eq)
 
 
@@ -203,8 +202,7 @@ initGame = Game { gameBoardUser = initBoard,
                   currentRound  = 1,
                   stats         = ((User, 0), (AI, 0)),
                   shootAnimation = (False, startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
-                  radarAnimation = radarInitial,
-                  radarAngle          = 0.0
+                  radarAnimation = radarInitial
                 }
                 where radarInitial = ([maxRadius - i * radiusOffet | i <- [0..4]], 0)
                       radiusOffet  = (screenHeight / 2) / 5
