@@ -7,59 +7,54 @@ import Game
 import Data.List
 import Test.HUnit
 
+{- cellCount cell board
+    counts number of cells with cell on a board
+    RETURNS: number of cells in board with cell
+    EXAMPLES: 
+                cellCount (Ship Checked) initBoard == 0
+                cellCount (Ship NotChecked) initBoard == 100
+-}
+cellCount :: Cell -> Board -> Int
+cellCount cell board = length $ filter (==cell) (elems board)
+
 {- shipsCount board
-    counts number of cells with ships NotChecked on a board
+    counts number of cells with Ship NotChecked on a board
     RETURNS: number of cells in board with Ship NotChecked
     EXAMPLES: 
                 shipsCount initBoard == 0
 -}
-
 shipsCount :: Board -> Int
-shipsCount board = length $ filter (==Ship NotChecked) (elems board)
-
-
-{- cellCount cellContent board
-    counts number of cells with cellContent on a board
-    RETURNS: number of cells in board with cellContent
-    EXAMPLES: 
-                cellCount (Ship Checked) initBoard == 0
--}
-
-cellCount ::  Cell -> Board -> Int
-cellCount cell board = length $ filter (==cell) (elems board)
+shipsCount = cellCount (Ship NotChecked)
 
 {- validCoordinates coord
-    checks if coord is within the range of a board
-    PRE: n is Int
+    checks if coord is within the range of a Board
+    PRE: global n is BoardSize
     RETURNS: True if coord is in board of size n, else false.
     EXAMPLES:       validCoordinates (0,0)   == True
                     validCoordinates (-1,-1) == False
 -}
-
 validCoordinates :: CellCoord -> Bool
 validCoordinates  = inRange boardIndex
                     where boardIndex = ((0, 0), (n - 1, n - 1)) 
 
-{- endCoordinates startposition shipsize direction
+{- endCoordinates startpos size direction
     calculates the end position of a ship
     PRE: shipsize >=1
-    RETURNS: end coordinates of a ship with startposition, shipsize and direction.
+    RETURNS: end coordinates of a ship with startpos, size and direction.
     EXAMPLES: 
                 endCoordinates (0,0) 1 Horizontal == (0,0)
                 endCoordinates (0,0) 5 Horizontal == (4,0)
                 endCoordinates (0,0) 5 Vertical   == (0,-4)
 -}
-
 endCoordinates :: CellCoord -> ShipSize -> Direction -> CellCoord
 endCoordinates (c, r) s Horizontal = (c + s - 1, r)
 endCoordinates (c, r) s Vertical = (c, r - s + 1)
 
-
 ---------------------------- Placing ship ----------------------------
 
-{- surroundingCells board coord shipsize direction
-   Get all cell coordinates that surrounds a ship starting at coord with shipsize and direction
-   RETURNS: A list containing cell coordinates that a ship starting at coord with shipsize and direction
+{- surroundingCells board coord size direction
+   Get all cell coordinates that surrounds a ship starting at coord with size and direction
+   RETURNS: A list containing cell coordinates that a ship starting at coord with size and direction
    EXAMPLES: surroundingCells (array ((0,0),(3,3)) ([((0,0),Empty NotChecked),((0,1),Ship NotChecked),((0,2),Ship NotChecked),((0,3)
                                                      ,Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
                                                      ((1,3),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked),
@@ -73,15 +68,14 @@ endCoordinates (c, r) s Vertical = (c, r - s + 1)
                                                      ((3,3),Empty NotChecked)]))
                                                      (1,3) 3 Horizontal == [(1,2),(2,2),(3,2),(1,3),(2,3),(3,3),(1,4),(2,4),(3,4),(0,3),(4,3)]
 -}
-
 surroundingCells :: Board -> CellCoord -> ShipSize -> Direction -> [CellCoord]
 surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c..c+s-1]] ++ [(c-1,r), (c+s,r)]
 surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1..r]] ++ [(c,r+1), (c,r-s)]                  
 
 
-{- followPlacementRules board coord shipsize direction
+{- followPlacementRules board coord size direction
    Check if ship placement follows the games placement rules
-   RETURNS: True if placement of a ship with shipsize and direction starting at coord,
+   RETURNS: True if placement of a ship with size and direction starting at coord,
             follows the placement rules of the game, else False.
    EXAMPLES: followPlacementRules (array ((0,0),(3,3)) [((0,0),Empty NotChecked),((0,1),Ship NotChecked),((0,2),Ship NotChecked),((0,3)
                                                      ,Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
@@ -96,13 +90,12 @@ surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1.
                                                      ((3,3),Empty NotChecked)])
                                                      (1,3) 3 Horizontal == True
 -}
-
 followPlacementRules ::  Board -> CellCoord -> ShipSize -> Direction -> Bool
 followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) || b ! coord /= Ship NotChecked) (surroundingCells b coord s d)
 
-{- validShipPlacement coord shipsize direction
+{- validShipPlacement coord size direction
    Check if ship placement is valid
-   RETURNS: True if placement of a ship with shipsize and direction starting at coord, is valid, else False.
+   RETURNS: True if placement of a ship with size and direction starting at coord, is valid, else False.
    EXAMPLES: validShipPlacement (array ((0,0),(3,3)) [((0,0),Empty NotChecked),((0,1),Ship NotChecked),((0,2),Ship NotChecked),((0,3),
                                 Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
                                 ((1,3),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked),
@@ -117,16 +110,15 @@ followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) |
                                 ((3,3),Empty NotChecked)]) (1,1) 2 Vertical 
                                 == True
 -}
-
 validShipPlacement :: Board ->  CellCoord -> ShipSize -> Direction -> Bool
 validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d)
                                   && validCoordinates (c, r)  
                                   && followPlacementRules b (c,r) s d
 
-{- placeShipAux board coord shipsize direction
-   Places a ship with shipsize and direction, on board starting at coord
-   VARIANT: Placement of ship is valid
-   RETURNS: updated board where ship wtih shipsize and direction, starting at coord, have been placed.
+{- placeShipAux board coord size direction
+   Places a ship with size and direction, on board starting at coord
+   PRE: Placement of ship is valid, size is >= 0
+   RETURNS: updated board where ship with size and direction, starting at coord, have been placed.
    EXAMPLES: placeShipAux (array ((0,0),(3,3)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),((0,3),
                                                 Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
                                                 ((1,3),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked),
@@ -138,17 +130,16 @@ validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d)
                                                                       ((2,3),Empty NotChecked),((3,0),Ship NotChecked),((3,1),Empty NotChecked),((3,2),Empty NotChecked),
                                                                       ((3,3),Empty NotChecked)]
 -}
-
 placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
--- VARIANT: shipsize
-placeShipAux b _ 0 _= b
+-- VARIANT: size
+placeShipAux b _ 0 _ = b
 placeShipAux b (c, r) s Vertical = placeShipAux (b // [((c, r), Ship NotChecked)]) (c, r - 1) (s - 1) Vertical
 placeShipAux b (c, r) s Horizontal = placeShipAux (b // [((c, r), Ship NotChecked)]) (c + 1, r) (s - 1) Horizontal
 
-{- placeShip game coord shipsize direction
-   Places a ship with shipsize and direction, on board starting at coord
+{- placeShip game coord size direction
+   Places a ship with size and direction on board starting at coord
    PRE: Placement of ship is valid
-   RETURNS: If placement is valid then it returns game where ship with shipsize, direction,
+   RETURNS: If placement is valid then it returns game where ship with size, direction,
             starting at coord have been placed in gameBoardUser, otherwise game unchanged.
    EXAMPLES: 
                 placeShip initGame {gameBoardAI = initBoard} (0,0) 0 Horizontal     == initGame {gameBoardAI = initBoard}
@@ -165,7 +156,6 @@ placeShipAux b (c, r) s Horizontal = placeShipAux (b // [((c, r), Ship NotChecke
                                                                                             , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
                                                                                             }
 -}
-
 placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
 placeShip game _ 0 _= game
 placeShip game coord s d | validShipPlacement board coord s d = 
@@ -173,7 +163,6 @@ placeShip game coord s d | validShipPlacement board coord s d =
                                  shipsUser     = tail $ shipsUser game}
                          | otherwise = game
                          where board = gameBoardUser game
-
 
 ---------------------------- Moving Ship Picture ---------------------
 
@@ -183,7 +172,6 @@ placeShip game coord s d | validShipPlacement board coord s d =
     EXAMPLES: mouseToCell (100, 40) ((0.0,0.0),(600.0,600.0)) == (5,2)
               mouseToCell (1000, 40) ((900.0,0.0),(1500.0,600.0)) == (5,2)
 -}
-
 mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
 mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth), floor ((y - y1 + boardHeight  * 0.5) / cellHeight ))
 
@@ -202,7 +190,6 @@ mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + 
                 moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,1), Horizontal,5)]} KeyDown    == initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]}
                 moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]} KeyDown    == initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]}
 -}
-
 moveShip :: Game -> SpecialKey -> Game
 moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
                        && validCoordinates newCoord = game {shipsUser = (newCoord, d, s) : ships}
@@ -226,7 +213,6 @@ moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
                 rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((9,0), Vertical,5)]}    == initGame {gameBoardAI = initBoard, shipsUser = [((9,0), Vertical,5)]} 
                 rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]}  == initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]} 
 -}
-
 rotateShip :: Game -> Game
 rotateShip game | validCoordinates $ endCoordinates coord s newDirection =
                   game {shipsUser = (coord, newDirection, s) : ships}
@@ -255,7 +241,6 @@ rotateShip game | validCoordinates $ endCoordinates coord s newDirection =
                                                                         , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
                                                                         }
 -}
-
 confirmShip :: Game -> Game
 confirmShip game | validShipPlacement board coord s d = 
                    updatedGame {gameStage = newGameStage}
