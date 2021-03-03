@@ -412,14 +412,14 @@ moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate 
 -}
 gameToPicture :: Game -> Picture
 gameToPicture game =
-    pictures [color radarColor $ pictures [radarPicture radar boardUserPos, radarPicture radar boardAIPos],
-              color boardGridColor $ pictures [boardGrid boardUserPos, boardGrid boardAIPos],
-              color green $ displayGameName boardUserPos,
-              color textColor $ combineDisplayText boardUserPos stage win currRound winStats,
-              pictures [displayCells userBoard boardUserPos True , displayCells boardAI boardAIPos False],
-              color movingShipColor  $ showPlacingShip ships,
-              color (if ishit then red else cyan) $ moveExplosion r pos b
-             ]
+    pictures  [ color radarColor $ pictures [radarPicture radar boardUserPos, radarPicture radar boardAIPos]
+              , color boardGridColor $ pictures [boardGrid boardUserPos, boardGrid boardAIPos]
+              , color green $ displayGameName boardUserPos
+              , color textColor $ combineDisplayText boardUserPos stage win currRound winStats
+              , pictures [displayCells userBoard boardUserPos True, displayCells boardAI boardAIPos False]
+              , color movingShipColor  $ showPlacingShip ships
+              , color (if ishit then red else cyan) $ moveExplosion r pos b
+              ]
              where userBoard = gameBoardUser game
                    boardAI = gameBoardAI game
                    ships = shipsUser game
