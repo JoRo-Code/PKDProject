@@ -1,8 +1,6 @@
 module Game where
-
 import Data.Array
 import System.Random
-
 {- The state of a square. 
     Checked means the square has been shot at.
     NotChecked means the square has not been shot at.
@@ -128,8 +126,6 @@ data Game = Game { gameBoardUser  :: Board ,
                  } deriving (Show, Eq)
 
 
-
-
 screenWidth :: Float
 screenWidth = 1440
 screenHeight :: Float
@@ -140,7 +136,6 @@ screenDivider :: Float
 screenDivider = 300
 
 --------------------- Solving cellWidth and cellHeight problem ---------------------
-
 
 cellWidth :: Float
 cellWidth  = (screenWidth - screenDivider) * 0.5 / fromIntegral n
@@ -156,12 +151,10 @@ boardAIPos = ((screenWidth * 0.5 + screenDivider * 0.5 ,0), (screenWidth, screen
 boardUserPos :: BoardPos
 boardUserPos = ((0,0), (screenWidth * 0.5 - screenDivider * 0.5, screenHeight))
 
-
-
-
+startRadius :: Radius
 startRadius = 0
+startDerivative :: Derivative
 startDerivative = screenWidth/2
-
 
 
 n :: BoardSize
@@ -175,11 +168,11 @@ n = 10
     RETURNS: array of empty cells of size n
     EXAMPLES: initBoard == array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)]
                   where n = 2
--} 
+-}
+
 initBoard :: Board        
 initBoard = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
             where boardIndex = ((0, 0), (n - 1, n - 1)) 
-
 
 carrier :: Ship
 carrier = ((0,0), Horizontal,5)
@@ -198,8 +191,8 @@ initShips = [carrier, battleShip, cruiser, submarine, destroyer]
 
 {- initGame 
   Creates the initial game
-
 -}
+
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard,
                   gameStage     = Placing User,
