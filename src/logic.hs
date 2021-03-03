@@ -13,6 +13,7 @@ import Test.HUnit
     EXAMPLES: 
                 shipsCount initBoard == 0
 -}
+
 shipsCount :: Board -> Int
 shipsCount board = length $ filter (==Ship NotChecked) (elems board)
 
@@ -23,6 +24,7 @@ shipsCount board = length $ filter (==Ship NotChecked) (elems board)
     EXAMPLES: 
                 cellCount (Ship Checked) initBoard == 0
 -}
+
 cellCount ::  Cell -> Board -> Int
 cellCount cell board = length $ filter (==cell) (elems board)
 
@@ -33,6 +35,7 @@ cellCount cell board = length $ filter (==cell) (elems board)
     EXAMPLES:       validCoordinates (0,0)   == True
                     validCoordinates (-1,-1) == False
 -}
+
 validCoordinates :: CellCoord -> Bool
 validCoordinates  = inRange boardIndex
                     where boardIndex = ((0, 0), (n - 1, n - 1)) 
@@ -46,6 +49,7 @@ validCoordinates  = inRange boardIndex
                 endCoordinates (0,0) 5 Horizontal == (4,0)
                 endCoordinates (0,0) 5 Vertical   == (0,-4)
 -}
+
 endCoordinates :: CellCoord -> ShipSize -> Direction -> CellCoord
 endCoordinates (c, r) s Horizontal = (c + s - 1, r)
 endCoordinates (c, r) s Vertical = (c, r - s + 1)
@@ -69,6 +73,7 @@ endCoordinates (c, r) s Vertical = (c, r - s + 1)
                                                      ((3,3),Empty NotChecked)]))
                                                      (1,3) 3 Horizontal == [(1,2),(2,2),(3,2),(1,3),(2,3),(3,3),(1,4),(2,4),(3,4),(0,3),(4,3)]
 -}
+
 surroundingCells :: Board -> CellCoord -> ShipSize -> Direction -> [CellCoord]
 surroundingCells b (c,r) s Horizontal =  [(c, r) | r <- [r-1..r+1], c <- [c..c+s-1]] ++ [(c-1,r), (c+s,r)]
 surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1..r]] ++ [(c,r+1), (c,r-s)]                  
@@ -91,6 +96,7 @@ surroundingCells b (c,r) s Vertical   =  [(c, r) | c <- [c-1..c+1], r <- [r-s+1.
                                                      ((3,3),Empty NotChecked)])
                                                      (1,3) 3 Horizontal == True
 -}
+
 followPlacementRules ::  Board -> CellCoord -> ShipSize -> Direction -> Bool
 followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) || b ! coord /= Ship NotChecked) (surroundingCells b coord s d)
 
@@ -111,6 +117,7 @@ followPlacementRules b coord s d = all (\coord -> not (validCoordinates coord) |
                                 ((3,3),Empty NotChecked)]) (1,1) 2 Vertical 
                                 == True
 -}
+
 validShipPlacement :: Board ->  CellCoord -> ShipSize -> Direction -> Bool
 validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d)
                                   && validCoordinates (c, r)  
@@ -131,6 +138,7 @@ validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d)
                                                                       ((2,3),Empty NotChecked),((3,0),Ship NotChecked),((3,1),Empty NotChecked),((3,2),Empty NotChecked),
                                                                       ((3,3),Empty NotChecked)]
 -}
+
 placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
 -- VARIANT: shipsize
 placeShipAux b _ 0 _= b
@@ -156,8 +164,8 @@ placeShipAux b (c, r) s Horizontal = placeShipAux (b // [((c, r), Ship NotChecke
                                                                                             , shootAnimation = (False,0.0,(720.0,285.0),95.0,720.0,False)
                                                                                             , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
                                                                                             }
-                
 -}
+
 placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
 placeShip game _ 0 _= game
 placeShip game coord s d | validShipPlacement board coord s d = 
@@ -175,6 +183,7 @@ placeShip game coord s d | validShipPlacement board coord s d =
     EXAMPLES: mouseToCell (100, 40) ((0.0,0.0),(600.0,600.0)) == (5,2)
               mouseToCell (1000, 40) ((900.0,0.0),(1500.0,600.0)) == (5,2)
 -}
+
 mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
 mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth), floor ((y - y1 + boardHeight  * 0.5) / cellHeight ))
 
@@ -192,9 +201,8 @@ mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + 
                 moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,9), Horizontal,5)]} KeyUp      == initGame {gameBoardAI = initBoard, shipsUser = [((1,9), Horizontal,5)]}
                 moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,1), Horizontal,5)]} KeyDown    == initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]}
                 moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]} KeyDown    == initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]}
-
-
 -}
+
 moveShip :: Game -> SpecialKey -> Game
 moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
                        && validCoordinates newCoord = game {shipsUser = (newCoord, d, s) : ships}
@@ -217,9 +225,8 @@ moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
                 rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((0,9), Vertical,5)]}    == initGame {gameBoardAI = initBoard, shipsUser = [((0,9), Horizontal,5)]}
                 rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((9,0), Vertical,5)]}    == initGame {gameBoardAI = initBoard, shipsUser = [((9,0), Vertical,5)]} 
                 rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]}  == initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]} 
-
-
 -}
+
 rotateShip :: Game -> Game
 rotateShip game | validCoordinates $ endCoordinates coord s newDirection =
                   game {shipsUser = (coord, newDirection, s) : ships}
@@ -228,6 +235,7 @@ rotateShip game | validCoordinates $ endCoordinates coord s newDirection =
                         newDirection = case d of
                                       Horizontal -> Vertical
                                       Vertical   -> Horizontal
+
 {- confirmShip game
     puts current placing ship on board and changes gameStage if all ships have been placed
     RETURNS: Game where gameBoardUser have been updated with current placing ship, 
@@ -246,8 +254,8 @@ rotateShip game | validCoordinates $ endCoordinates coord s newDirection =
                                                                         , shootAnimation = (False,0.0,(720.0,285.0),95.0,720.0,False)
                                                                         , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
                                                                         }
-
 -}
+
 confirmShip :: Game -> Game
 confirmShip game | validShipPlacement board coord s d = 
                    updatedGame {gameStage = newGameStage}
@@ -267,9 +275,9 @@ confirmShip game | validShipPlacement board coord s d =
     EXAMPLES: getCell (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0,1) == Ship Checked
               getCell (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0,0) == Empty NotChecked
 -}
+
 getCell :: Board -> CellCoord -> Cell
 getCell b c = b ! c
-
 
 {- checkCell board coord
     Changes the state of a cell to checked
@@ -280,6 +288,7 @@ getCell b c = b ! c
                          == array ((0,0),(1,1)) [((0,0),Empty Checked),((0,1),Ship Checked),
                                   ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]
 -}
+
 checkCell :: Board -> CellCoord -> Board
 checkCell b (c, r) = case getCell b (c, r) of
                       Empty NotChecked -> b // [((c, r), Empty Checked)]   
@@ -295,6 +304,7 @@ checkCell b (c, r) = case getCell b (c, r) of
               getState (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                        ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0, 1) == Checked
 -}
+
 getState :: Board -> CellCoord -> SquareState
 getState b c =  case getCell b c of
                      Empty s -> s
@@ -308,6 +318,7 @@ getState b c =  case getCell b c of
               hitShip (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship NotChecked),
                       ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0, 1) == True
 -}
+
 hitShip :: Board -> CellCoord -> Bool 
 hitShip b coord = validCoordinates coord && b ! coord == Ship NotChecked
 
@@ -317,6 +328,7 @@ hitShip b coord = validCoordinates coord && b ! coord == Ship NotChecked
     EXAMPLES: isWithinBoard ((900.0,0.0),(1500.0,600.0)) (200, 100) == True (when screenWidth == 1440, screenDivider == 300)
               isWithinBoard ((900.0,0.0),(1500.0,600.0)) (0, 0)     == False (when screenWidth == 1440, screenDivider == 300)
 -}
+
 isWithinBoard :: BoardPos -> ScreenCoord -> Bool
 isWithinBoard ((x1,y1),(x2,y2)) (x,y) = xNew >= x1 && xNew <= x2 && yNew >= y1 && yNew <= y2
                                       where (xNew, yNew) = (x + 0.5 * screenWidth, y + 0.5*screenHeight)
@@ -330,6 +342,7 @@ isWithinBoard ((x1,y1),(x2,y2)) (x,y) = xNew >= x1 && xNew <= x2 && yNew >= y1 &
               isChecked (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                         ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0,1) == True
 -}
+
 isChecked :: Board -> CellCoord -> Bool
 isChecked b coord = s == Checked
         where s = getState b coord
@@ -342,6 +355,7 @@ isChecked b coord = s == Checked
               allShipsChecked (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                               ((1,0),Empty NotChecked),((1,1), Ship Checked)]) == True
 -}
+
 allShipsChecked :: Board -> Bool
 allShipsChecked b = not $ any (\cell -> cell == Ship NotChecked) b
 
@@ -364,6 +378,7 @@ allShipsChecked b = not $ any (\cell -> cell == Ship NotChecked) b
                        ((1,0), Ship NotChecked),((1,1), Ship NotChecked)])
                        == Nothing
 -}
+
 checkWin :: Board -> Board -> Maybe Player
 checkWin boardUser boardAI = case (allShipsChecked boardUser, allShipsChecked boardAI) of
                              (True, True)  -> Just User
@@ -378,6 +393,7 @@ checkWin boardUser boardAI = case (allShipsChecked boardUser, allShipsChecked bo
               updateStats ((User, 1), (AI, 1)) (Just AI)   = ((User, 1), (AI, 2))
               updateStats ((User, 1), (AI, 1)) Nothing     = ((User, 1), (AI, 1))
 -}
+
 updateStats :: Stats -> Maybe Player -> Stats
 updateStats s@((user, n1), (ai, n2)) player = case player of 
                                          Just User -> ((user, n1 + 1), (ai, n2))
@@ -404,8 +420,8 @@ updateStats s@((user, n1), (ai, n2)) player = case player of
                                                                                     , shootAnimation = (False,0.0,(720.0,285.0),95.0,720.0,False)
                                                                                     , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
                                                                                     }
-
 -}
+
 playerShoot :: Game -> CellCoord -> Game
 playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI game) coord)
                         = game {gameBoardAI = shotAIboard, 
@@ -430,6 +446,7 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
     EXAMPLES: allCoords == [(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3),(2,0),(2,1),(2,2),(2,3),(3,0),(3,1),(3,2),(3,3)]
                 where n = 4
 -}
+
 allCoords :: [CellCoord]
 allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
 
@@ -447,6 +464,7 @@ allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
                                                   [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)] 2 Vertical
                                                   == [((0,1),Vertical),((0,2),Vertical),((1,1),Vertical),((1,2),Vertical),((2,1),Vertical),((2,2),Vertical)]
 -}
+
 findValidDirectionalPlacements :: Board -> [CellCoord] -> ShipSize ->  Direction -> [(CellCoord, Direction)]
 findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filter (\coord -> validShipPlacement b coord s d) coords
                  
@@ -460,6 +478,7 @@ findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filte
               == [((0,0),Horizontal),((0,1),Horizontal),((0,2),Horizontal),
                  ((0,2),Vertical),((1,2),Vertical),((2,2),Vertical)]
 -}
+
 findAllValidPlacements :: Board -> ShipSize -> [(CellCoord, Direction)]
 findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizontal ++ findValidDirectionalPlacements b allCoords s Vertical 
 
@@ -470,6 +489,7 @@ findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizo
               randomElement [1,2,3,4,5,6,7,8] (mkStdGen 11) == (4,StdGen {unStdGen = SMGen 4664641791676752737 5833679380957638813})
               randomElement ['a','b','c','d','e'] (mkStdGen 10) == ('d',StdGen {unStdGen = SMGen 9076629564743049838 614480483733483467})
 -}
+
 randomElement :: [a] -> StdGen -> (a, StdGen)
 randomElement list gen = (list !! randomInt, newGen)
                      where range = (0, length list - 1)
@@ -486,10 +506,10 @@ randomElement list gen = (list !! randomInt, newGen)
                        ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Ship NotChecked),
                        ((2,1),Ship NotChecked),((2,2),Ship NotChecked)],StdGen {unStdGen = SMGen 8462149081009566371 614480483733483467})
 -}
+
 placeShipAI :: StdGen -> Board -> ShipSize -> [(CellCoord, Direction)] -> (Board, StdGen)
 placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
                              where ((coord , d), newGen) = randomElement placements gen
-
 
 {- placeMultipleShipsAI gen board ships
        places the ships on random places on the board
@@ -502,6 +522,7 @@ placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
                     ((1,0),Ship NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Empty NotChecked),
                     ((2,1),Empty NotChecked),((2,2),Ship NotChecked)],StdGen {unStdGen = SMGen 10305590532210016772 614480483733483467})
 -}
+
 placeMultipleShipsAI :: StdGen -> Board -> Ships -> (Board, StdGen)
 -- VARIANT: length ships
 placeMultipleShipsAI gen b [] = (b, gen)
@@ -518,6 +539,7 @@ placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBo
              getCol ((9,0),Ship Checked) == 9
              getCol ((1,1),Ship NotChecked) == 1
 -}
+
 getCol :: (CellCoord,Cell) -> Col
 getCol ((a,_),_) = a
 
@@ -528,6 +550,7 @@ getCol ((a,_),_) = a
              getRow ((9,0),Ship Checked) == 0
              getRow ((1,1),Ship NotChecked) == 1
 -}
+
 getRow :: (CellCoord,Cell) -> Row
 getRow ((_,b),_) = b
 
@@ -544,6 +567,7 @@ getRow ((_,b),_) = b
                             ((1,1),Ship Checked),((1,2),Ship NotChecked),
                             ((2,0),Empty NotChecked),((2,1),Empty Checked),((2,2),Empty NotChecked)]
 -}
+
 aiShootList :: Board -> ShootList
 aiShootList = assocs
 
@@ -560,6 +584,7 @@ aiShootList = assocs
                        ((0,0),Empty NotChecked),((0,2),Empty NotChecked),
                        ((1,1),Ship Checked),((2,0),Empty NotChecked),((2,2),Empty NotChecked)]
 -}
+
 aiPrio :: ShootList -> ShootList -> ShootList
 -- VARIANT: length sl
 aiPrio [] acc = acc
@@ -580,6 +605,7 @@ aiPrio (x:xs) acc
                                 ((2,0),Empty NotChecked)],
                                 StdGen {unStdGen = SMGen 15835914885811367975 614480483733483467})
 -}
+
 filterShootList :: Board -> StdGen -> (ShootList, StdGen)
 filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
     where (shuffledList, newGen) = shuffle (aiShootList b) gen 
@@ -595,6 +621,7 @@ filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
                            == [((0,0),Empty NotChecked),((0,2),Empty NotChecked),
                               ((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,2),Empty NotChecked)]
 -}
+
 removeChecked :: [(CellCoord, Cell)] -> [(CellCoord, Cell)]
 removeChecked s = filter (\(coord, cell) -> cell == Empty NotChecked || cell == Ship NotChecked) s
 
@@ -605,6 +632,7 @@ removeChecked s = filter (\(coord, cell) -> cell == Empty NotChecked || cell == 
              updateStack [((0,0),Empty NotChecked)] [((1,2),Ship NotChecked)] == [((0,0),Empty NotChecked)]
              updateStack [] [] == []
 -}
+
 updateStack :: Stack -> ShootList -> Stack
 updateStack [] (x:xs) = [x]
 updateStack s _ = s
@@ -620,6 +648,7 @@ updateStack s _ = s
                            ((2,1),Empty Checked),((2,2),Empty NotChecked)]) ((1,0),Ship Checked)
                            == [((1,1),Ship Checked),((0,0),Empty NotChecked),((2,0),Empty NotChecked)]
 -}
+
 cohesiveCells :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCells b ((c,r),x) = map (\coord -> (coord, b ! coord)) (filter validCoordinates [(c,r+1), (c,r-1), (c-1,r), (c+1,r)])
 
@@ -631,6 +660,7 @@ cohesiveCells b ((c,r),x) = map (\coord -> (coord, b ! coord)) (filter validCoor
              isShip ((1,1),Ship NotChecked)  == True
              isShip ((2,2),Empty Checked)    == False
 -}
+
 isShip :: (CellCoord,Cell) -> Bool
 isShip (_, Ship NotChecked) = True
 isShip _ = False
@@ -645,6 +675,7 @@ isShip _ = False
                         == (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
                            ((1,0),Empty Checked),((1,1),Empty NotChecked)],[])
 -}
+
 aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
 aiShootAux (b, s@(coord,cell):st)  l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st))
                                      | otherwise = (checkCell b coord, st)
@@ -666,12 +697,12 @@ aiShootAux (b, s@(coord,cell):st)  l | isShip s = (checkCell b coord, removeChec
                         ((1,0),Empty Checked),((1,1),Empty NotChecked)],[]),StdGen 
                         {unStdGen = SMGen 9076629564743049838 614480483733483467})
 -}
+
 aiShoot :: (Board,Stack) -> StdGen -> ((Board, Stack), StdGen)
 aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList) newList,newGen)
                      where (newList, newGen) = filterShootList b gen
 
 --------------------- EventHandler --------------------------------
-
 
 {- eventHandler event game
     handles all input from user
@@ -711,7 +742,6 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
                                         where (newBoard, newGen) = placeMultipleShipsAI (gen game) initBoard initShips
          _ -> game
 eventHandler _ game = game 
-
 
 
 ----------------------------- TESTCASES --------------------------------

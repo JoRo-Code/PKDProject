@@ -143,7 +143,6 @@ fadedArc angle r =
     EXAMPLES:
                 radarPicture ([1..5], 45) boardAIPos    -> radar arc with radius 5 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
                 radarPicture ([1], 45) boardAIPos       -> radar arc with radius 1 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
-
 -}
 
 radarPicture :: Radar -> BoardPos ->  Picture
@@ -174,8 +173,8 @@ radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =
                 displayStats boardUserPos ((User, 5), (AI, (-1)))   ->  Text "User wins: 5"
                                                                         Text "AI wins: -1"
                                                                         (positioned to the middle right of boardUserPos)
+-}
 
--}                                        
 displayStats :: BoardPos -> Stats -> Picture
 displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTranslate (y2 - 0.7 * screenDivider) $ pic "User wins: " n1 
                                                                   , translate xTranslate (y2 - 0.85 * screenDivider) $ pic "AI wins: " n2]
@@ -191,7 +190,8 @@ displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTra
                                                             (positioned to the upper right of boardUserPos)
                displayCurrentRound boardUserPos (-1)    -> Text "Round -1"
                                                             (positioned to the upper right of boardUserPos)
--}                                                     
+-}
+
 displayCurrentRound :: BoardPos -> Round -> Picture
 displayCurrentRound ((x1,y1),(x2,y2)) round = translate (x2 + 0.1 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
                                                         where sc = screenDivider / 1100
@@ -205,8 +205,8 @@ displayCurrentRound ((x1,y1),(x2,y2)) round = translate (x2 + 0.1 * screenDivide
                                                                                  (positioned to the lower right of boardUserPos) 
                 displayArrowInstruction boardUserPos "<---- Place here"     ->   Text "<---- Place here"
                                                                                  (positioned to the lower right of boardUserPos) 
-
 -}
+
 displayArrowInstruction  :: BoardPos -> String -> Picture
 displayArrowInstruction ((x1,y1),(x2,y2)) s = translate (x2 + 0.05 * screenDivider) (y1 + 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 1400
@@ -219,8 +219,8 @@ displayArrowInstruction ((x1,y1),(x2,y2)) s = translate (x2 + 0.05 * screenDivid
                 displayRestartInstructions boardUserPos -> Text "Left mouse button to"
                                                            Text "play next round,"
                                                            (positioned to the lower right of boardUserPos)  
-
 -}
+
 displayRestartInstructions :: BoardPos -> Picture
 displayRestartInstructions ((x1,y1),(x2,y2)) = pictures $ concatMap  
                                                (\i -> [translate xTranslate (y2 - (1 + 0.1 * fromIntegral i) * screenDivider) 
@@ -243,8 +243,8 @@ displayRestartInstructions ((x1,y1),(x2,y2)) = pictures $ concatMap
                 displayInstructions boardUserPos (Shooting User) -> Text "Click on a cell on"
                                                                     Text "the enemy's board to shoot"
                                                                     (positioned to the lower right of boardUserPos)
-
 -}
+
 displayInstructions :: BoardPos -> GameStage -> Picture
 displayInstructions ((x1,y1),(x2,y2)) stage = pictures $ concatMap  
                                                (\i -> [translate xTranslate (y2 - (1.2 + 0.1 * fromIntegral i) * screenDivider) 
@@ -269,8 +269,8 @@ displayInstructions ((x1,y1),(x2,y2)) stage = pictures $ concatMap
                 displayWinner boardUserPos (Just User)  -> Text "You won!" up to the right of boardUserPos
                 displayWinner boardUserPos (Just AI)    -> Text "You lost!" up to the right of boardUserPos
                 displayWinner boardUserPos Nothing      == Blank 
-
 -}
+
 displayWinner :: BoardPos -> Maybe Player-> Picture
 displayWinner  _ Nothing = Blank
 displayWinner ((x1,y1),(x2,y2)) player  = translate (x2 + 0.1 * screenDivider) (y2 - 0.4* screenDivider) $ pictures [scale sc sc $ text s]
@@ -286,9 +286,8 @@ displayWinner ((x1,y1),(x2,y2)) player  = translate (x2 + 0.1 * screenDivider) (
     EXAMPLES:
                 displayGameStage boardUserPos (Placing User)    -> Text "Place ships!" to the upper right of boardUserPos
                 displayGameStage boardUserPos (Shooting User)   -> Text "Shoot enemy!" to the upper right of boardUserPos
-
-
 -}
+
 displayGameStage :: BoardPos -> GameStage -> Picture
 displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) (y2 - 0.4 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 1100
@@ -310,7 +309,6 @@ displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) 
                                                                                                                 winner      = "You won!"
                                                                                                                 round       = 1
                                                                                                                 score       = (1,0)
-                                                                                                        
 -}
 
 combineDisplayText :: BoardPos -> GameStage -> Maybe Player -> Round -> Stats -> Picture
@@ -329,7 +327,6 @@ combineDisplayText pos stage winner round stats = pictures [if winner == Nothing
     RETURNS: picture with BATTLESHIPS in a position in relation to boardpos
     EXAMPLES:
                 displayGameName boardUserPos -> Text "BATTLESHIPS" in the middle upper part of the screen
-
 -}
 
 displayGameName :: BoardPos -> Picture
@@ -356,7 +353,6 @@ snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y pict
     where x = x1 + fromIntegral c * cellWidth + cellWidth / 2
           y = y1 + fromIntegral r * cellHeight + cellHeight / 2
           
-
 
 {- cellsToPicture board boardpos cellContent pic
     puts pic on all cells in board with cellContent
@@ -401,7 +397,6 @@ moveExplosion :: Radius -> ScreenCoord -> Bool -> Picture
 moveExplosion _ _ False = Blank
 moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
 
-
 {- gameToPicture game
     turns game into a picture with lower left corner in the middle of the screen
     Credit to Tsoding. His function is modified to be flexible with multiple grids and bigger game datatype
@@ -434,7 +429,6 @@ gameToPicture game =
                    winStats = stats game
                    (ishit, r, pos,_, _,b) =  shootAnimation game
                    radar = radarAnimation game
-
 
 {- drawGame game 
     transforms game into a picture, translates everything to the lower left corner

@@ -6,8 +6,6 @@ import Logic        -- eventHandler
 import Rendering    -- drawGame
 import Animation    -- animationFunc
 
-
-
 -- window specifications
 window :: Display
 window = InWindow "BattleShips" (floor screenWidth, floor screenHeight) (100, 100)
@@ -17,9 +15,6 @@ backgroundColor = makeColor 0 0 0 0
 
 fps :: Int
 fps = 30
-
-
-
 
 {- main
        main loop which controls output in gloss
@@ -36,5 +31,3 @@ main = do
               drawGame 
               eventHandler 
               animationFunc
-
-

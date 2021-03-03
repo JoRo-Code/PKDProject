@@ -10,7 +10,6 @@ import Game
                     showBool                        -> hides explosion at end radius
 
                     increasing angle of radius      -> spinning radar
-                    
 -}
 
 animationFunc :: Float -> Game -> Game
