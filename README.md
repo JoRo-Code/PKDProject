@@ -1,12 +1,15 @@
 # PKDProject
 Final project for PKD
-Jonas Rosengren, William Brunnsberg, William Berger
+
+AUTHORS: Jonas Rosengren, William Brunnsberg, William Berger
+
 Battleships project with AI simple AI.
 Made with Gloss-play function
 
 when installed haskell and libraries
 navigate to src-folder
-use 
+
+use:
 >>ghc -threaded main 
 
 to compile
@@ -17,5 +20,4 @@ to run
 
 
 requirements:
-System.Random
-Graphics.Gloss
+System.Random, Graphics.Gloss
