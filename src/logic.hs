@@ -178,6 +178,8 @@ moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
     changes the first placing ship's direction
     PRE: shipsUser in game not empty
     RETURNS: If opposite direction is valid then head of shipsUser game with opposite direction, else game.
+    EXAMPLES: 
+                rotateShip initGame {gameBoardAI = initBoard} == initGame {gameBoardAI = initBoard}
 
 -}
 
@@ -193,6 +195,21 @@ rotateShip game | validCoordinates $ endCoordinates coord s newDirection =
     puts current placing ship on board and changes gameStage if all ships have been placed
     RETURNS: Game where gameBoardUser have been updated with current placing ship, 
              if placement is valid, else returns game unchanged
+    EXAMPLES: 
+                confirmShip initGame {gameBoardAI = initBoard, shipsUser = [((-1,0), Horizontal,5)] } == initGame {gameBoardAI = initBoard, shipsUser = [((-1,0), Horizontal,5)]} 
+                confirmShip initGame {gameBoardAI = initBoard } == Game { gameBoardUser = array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
+                                                                        , gameBoardAI = array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
+                                                                        , gameStage = Placing User
+                                                                        , shipsUser = [((0,0),Horizontal,5),((0,3),Vertical,4),((0,0),Horizontal,3),((0,2),Vertical,3),((0,0),Horizontal,2)]
+                                                                        , stackAI = []
+                                                                        , winner = Nothing
+                                                                        , gen = StdGen {unStdGen = SMGen 16626775891238333538 2532601429470541125}
+                                                                        , currentRound = 1
+                                                                        , stats = ((User,0),(AI,0))
+                                                                        , shootAnimation = (False,0.0,(720.0,285.0),95.0,720.0,False)
+                                                                        , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
+                                                                        }
+
 -}
 
 confirmShip :: Game -> Game
@@ -343,6 +360,24 @@ updateStats s@((user, n1), (ai, n2)) player = case player of
 {- playerShoot game coord 
     shoots the coord for user. Calls AI to shoot. Updates game accordingly
     RETURNS: game after user and AI have shot. 
+    EXAMPLES:   playerShoot initGame {gameBoardAI = initBoard } (-1,0)   == initGame {gameBoardAI = initBoard } 
+                playerShoot initGame {gameBoardAI = initBoard } (0,0)    == game =  { gameBoardUser = array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked)
+                                                                                                                            , ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked)
+                                                                                                                            , ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
+                                                                                    , gameBoardAI = array ((0,0),(2,2)) [((0,0),Empty Checked),((0,1),Empty NotChecked),((0,2),Empty NotChecked)
+                                                                                                                            , ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked)
+                                                                                                                            , ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)] 
+                                                                                    , gameStage = Placing User
+                                                                                    , shipsUser = [((0,0),Horizontal,5),((0,3),Vertical,4),((0,0),Horizontal,3),((0,2),Vertical,3),((0,0),Horizontal,2)]
+                                                                                    , stackAI = []
+                                                                                    , winner = Just User
+                                                                                    , gen = StdGen {unStdGen = SMGen 2526700609054100431 2532601429470541125}
+                                                                                    , currentRound = 1
+                                                                                    , stats = ((User,1),(AI,0))
+                                                                                    , shootAnimation = (False,0.0,(720.0,285.0),95.0,720.0,False)
+                                                                                    , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
+                                                                                    }
+
 -}
 
 playerShoot :: Game -> CellCoord -> Game
@@ -676,7 +711,7 @@ cellCount ::  Cell -> Board -> Int
 cellCount cell board = length $ filter (==cell) (elems board)
 ----------------------------- TESTCASES --------------------------------
  
-
+{-
 
 test9 = TestCase $ assertEqual "validCoordinates: coordinates out of bounds" False (validCoordinates (2,11))
 test10 = TestCase $ assertEqual "endCoordinates: vertical placement" (5,4) (endCoordinates (5,6) 3 Vertical)
@@ -756,3 +791,4 @@ tests = TestList    [ test1
                     ]
 
 runtests = runTestTT $ tests
+-}
