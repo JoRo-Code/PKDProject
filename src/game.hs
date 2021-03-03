@@ -239,7 +239,6 @@ initGame = Game { gameBoardUser = initBoard,
                   gen           = mkStdGen 100,
                   currentRound  = 1,
                   stats         = ((User, 0), (AI, 0)),
-                  -- Animation
                   shootAnimation = (False, startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
                   radarAnimation = radarInitial,
                   radarAngle          = 0.0

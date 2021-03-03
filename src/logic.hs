@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-} 
 module Logic where
 
 import Shuffle
@@ -127,13 +126,14 @@ validShipPlacement b (c, r) s d = validCoordinates (endCoordinates (c, r) s d)
 -}
 
 placeShipAux :: Board -> CellCoord -> ShipSize -> Direction -> Board
+-- VARIANT: shipsize
 placeShipAux b _ 0 _= b
 placeShipAux b (c, r) s Vertical = placeShipAux (b // [((c, r), Ship NotChecked)]) (c, r - 1) (s - 1) Vertical
 placeShipAux b (c, r) s Horizontal = placeShipAux (b // [((c, r), Ship NotChecked)]) (c + 1, r) (s - 1) Horizontal
 
 {- placeShip game coord shipsize direction
    Places a ship with shipsize and direction, on board starting at coord
-   VARIANT: Placement of ship is valid
+   PRE: Placement of ship is valid
    RETURNS: If placement is valid then it returns game where ship with shipsize, direction,
             starting at coord have been placed in gameBoardUser, otherwise game unchanged.
    EXAMPLES: 
@@ -141,8 +141,11 @@ placeShipAux b (c, r) s Horizontal = placeShipAux (b // [((c, r), Ship NotChecke
 
 placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
 placeShip game _ 0 _= game
-placeShip game coord s d | validShipPlacement (gameBoardUser game) coord s d  = game {gameBoardUser = placeShipAux (gameBoardUser game) coord s d, shipsUser = tail $ shipsUser game}
+placeShip game coord s d | validShipPlacement board coord s d = 
+                           game {gameBoardUser = placeShipAux board coord s d,
+                                 shipsUser     = tail $ shipsUser game}
                          | otherwise = game
+                         where board = gameBoardUser game
 
 
 ---------------------------- Moving Ship Picture ---------------------
@@ -165,11 +168,10 @@ mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + 
 -}
 
 moveShip :: Game -> SpecialKey -> Game
-moveShip game keyDir 
-                     | validCoordinates (endCoordinates newCoord s d)
-                       && validCoordinates newCoord = game {shipsUser = (newCoord, d, s) : rest}
+moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
+                       && validCoordinates newCoord = game {shipsUser = (newCoord, d, s) : ships}
                      | otherwise = game
-                      where (((c, r), d, s):rest) = shipsUser game
+                      where (((c, r), d, s):ships) = shipsUser game
                             newCoord =  case keyDir of
                                         KeyLeft  -> (c - 1, r)
                                         KeyRight -> (c + 1, r)  
@@ -179,16 +181,16 @@ moveShip game keyDir
 
 {- rotateShip game 
     changes the first placing ship's direction
+    PRE: shipsUser in game not empty
     RETURNS: If opposite direction is valid then head of shipsUser game with opposite direction, else game.
 
 -}
 
 rotateShip :: Game -> Game
-rotateShip game 
-                | validCoordinates $ endCoordinates coord s newDirection =  game {shipsUser = (coord, newDirection, s) : tail ships}
+rotateShip game | validCoordinates $ endCoordinates coord s newDirection =
+                  game {shipsUser = (coord, newDirection, s) : ships}
                 | otherwise = game
-                  where (coord, d, s) = head ships
-                        ships = shipsUser game
+                  where ((coord, d, s):ships) = shipsUser game
                         newDirection = case d of
                                       Horizontal -> Vertical
                                       Vertical   -> Horizontal
@@ -199,11 +201,13 @@ rotateShip game
 -}
 
 confirmShip :: Game -> Game
-confirmShip game | validShipPlacement (gameBoardUser game) coord s d = (placeShip game coord s d) {gameStage = newGameStage}
+confirmShip game | validShipPlacement board coord s d = 
+                   updatedGame {gameStage = newGameStage}
                  | otherwise = game
-                   where (coord, d, s) = head ships
-                         ships = shipsUser game
-                         newGameStage = if null $ tail ships then Shooting User else Placing User
+                   where ((coord, d, s):ships) = shipsUser game
+                         board = gameBoardUser game
+                         updatedGame = placeShip game coord s d
+                         newGameStage = if null ships then Shooting User else Placing User
 
 
 ---------------------------- Shooting Ship ------------------------
@@ -266,8 +270,8 @@ hitShip b coord = validCoordinates coord && b ! coord == Ship NotChecked
 {- isWithinBoard boardposition screencoord
     checks if a screencoord is within a board with width and height of boardposition
     RETURNS: True if screencoord is within boardposition, else False.
-    EXAMPLES: isWithinBoard ((900.0,0.0),(1500.0,600.0)) (200, 100) == True
-              isWithinBoard ((900.0,0.0),(1500.0,600.0)) (0, 0)     == False
+    EXAMPLES: isWithinBoard ((900.0,0.0),(1500.0,600.0)) (200, 100) == True (when screenWidth == 1440, screenDivider == 300)
+              isWithinBoard ((900.0,0.0),(1500.0,600.0)) (0, 0)     == False (when screenWidth == 1440, screenDivider == 300)
 -}
 
 isWithinBoard :: BoardPos -> ScreenCoord -> Bool
@@ -625,7 +629,7 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =
                                                       coord = mouseToCell mousePos boardAIPos
                                                       performAnimation = isWithinBoard boardAIPos mousePos 
                                                                          && getState (gameBoardAI game) coord == NotChecked
-         _ -> initGame {gameBoardAI = newBoard
+         (_, Shooting User) -> initGame {gameBoardAI = newBoard
                                         , gen = newGen
                                         , currentRound = currentRound game + 1
                                         , stats = stats game
