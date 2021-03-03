@@ -33,114 +33,85 @@ data GameStage = Placing Player | Shooting Player deriving (Show, Eq)
 -}
 data Direction = Horizontal | Vertical deriving (Show, Eq)  
 
-{- The number of a row on the board.
--}
+-- The number of a row on the board.
 type Row         = Int
 
-{- The number of a column on the board.
--}
+-- The number of a column on the board.
 type Col         = Int
 
-{- Coordinates for a cell consisting of column and row.
--}
+-- Coordinates for a cell consisting of column and row.
 type CellCoord   = (Col, Row)
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Coordinates for position on gloss window.
 type ScreenCoord = (Float, Float)
 
-{- An Array with coordinates for a cell consisting of column and row and its corresponding cell.
--}
+-- Represents the boundaries of a board on a gloss window.
+type BoardPos = (ScreenCoord, ScreenCoord)
+
+-- An Array with coordinates for a cell consisting of column and row and its corresponding cell.
 type Board       = Array (Col, Row) Cell
 
-{- The size of a board where the BoardSize is the amount of Columns and Rows.
--}
+-- The size of a board where the BoardSize is the amount of Columns and Rows.
 type BoardSize   = Int
 
-{- The length of a Ship represented by an Int.
--}
+-- The length of a Ship represented by an Int.
 type ShipSize    = Int
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Represents the current round.
 type Round       = Int
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Represents the current score.
 type Score       = Int
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Represents two players and their corresponding score.
 type Stats       = ((Player, Score), (Player, Score))
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- The status of whether a Ship is being hit or not.
 type HitShip     = Bool
 
-{- A list of the Coordinates and Cells AI can shoot.
--}
+-- A list of the Coordinates and Cells AI can shoot.
 type ShootList = [(CellCoord,Cell)]
 
-
-{- A list of the Coordinates and Cells AI is currently focusing its shots.
--}
+-- A list of the Coordinates and Cells AI is currently focusing its shots.
 type Stack = [(CellCoord,Cell)]
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Represents a ship with its starting coordinates, direction and length.
 type Ship = (CellCoord, Direction, ShipSize)
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- A list of ships with their starting coordinates, directions and length.
 type Ships = [Ship]
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Represents the radius of a circle.
 type Radius = Float
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
-type Pos = (Float, Float)
-
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Represents the speed of an increasing radius in an animation.
 type Derivative = Float
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Represents the angle of the rotating arc in the radar.
 type Angle = Float
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
--}
+-- Represents the radiuses of all circles in the radar and the angle of the arc. 
 type Radar = ([Radius], Angle)
 
-{- ... description of what the data type represents ... 
-     ... description of how the datatype represents data ...
-     INVARIANT:  ... a predicate on elements of the datatype that the code preserves at all times ...
+{- Represents the current state of the game. 
+     - gameBoardUser represents the user's board.
+     - gameBoardAI represents the AI's board.
+     - gameStage represents the current stage of the game.
+     - shipsUser represents the ships given to the user.
+     - stackAI represents the current stack for the AI.
+     - winner represents the winner of the current round. If no one has won yet, it is Nothing.
+     - gen represents the latest random seed.
+     - currentRound represents the current round.
+     - stats represents the current user and AI stats.
+     - shootAnimation holds all information for the shooting animations.
+     - radarAnimation holds all information for the radar background animation.
+     - radarAngle holds information for the angle of the arc in the radar animation.
+     INVARIANT: 
+     - Ships cannot be placed right next to each other. 
+     - Ships must not be overlapped.
+     - Ships must be located within the boundaries of the board.
+     - Shots must be withing the boundaries of the board.
+     - Shots cannot be fired on already shot cells.
 -}
 data Game = Game { gameBoardUser  :: Board , 
                    gameBoardAI    :: Board,
@@ -151,13 +122,12 @@ data Game = Game { gameBoardUser  :: Board ,
                    gen            :: StdGen,
                    currentRound   :: Round,
                    stats          :: Stats,
-                   shootAnimation :: (HitShip, Radius, Pos, Radius, Derivative, Bool),
+                   shootAnimation :: (HitShip, Radius, ScreenCoord, Radius, Derivative, Bool),
                    radarAnimation :: Radar,
                    radarAngle     :: Angle
                  } deriving (Show, Eq)
 
 
-type BoardPos = (ScreenCoord, ScreenCoord)
 
 
 screenWidth :: Float

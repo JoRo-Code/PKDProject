@@ -72,3 +72,7 @@ Tuesday 2021-02-23 - 1 hour
 
  Monday 2021-03-01 - 1 hour
  - meeting where we went through what needs to be done and what everyone has responsibility over fixing
+
+ Tuesday 2021-03-02 - 1 hour
+ - meeting where we went through what is left to do and delegated the tasks
+ - wrote specifications for type synonyms
