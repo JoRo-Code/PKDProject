@@ -1,7 +1,5 @@
 module Animation where
-
 import Game
-
 
 {- animationFunc time game
     updates shooting and radar animation with respect to time.
@@ -14,6 +12,7 @@ import Game
                     increasing angle of radius      -> spinning radar
                     
 -}
+
 animationFunc :: Float -> Game -> Game
 animationFunc dt game  = game {shootAnimation = (hitShip, newRadius r d, pos, end, newD d, showExplosion r b),
                                radarAnimation = (radiuses, newAngle angle)

@@ -1,5 +1,4 @@
 module Rendering where
-
 import Graphics.Gloss
 import Data.Array
 import Game
@@ -20,12 +19,9 @@ movingShipColor = makeColorI 128 128 128 200
 radarColor :: Color
 radarColor = makeColorI 0 140 0 255
 
-
 -- thickness of radarcircles
 radarThickness :: Float
 radarThickness = 3
-
-
 
 ---------------------------- Pictures ----------------------------
 
@@ -37,8 +33,8 @@ radarThickness = 3
     EXAMPLES: 
                 crossPicture == Pictures [Rotate 45.0 (Polygon [(-19.949999,-4.275),(-19.949999,4.275),(19.949999,4.275),(19.949999,-4.275)]),Rotate (-45.0) (Polygon [(-19.949999,-4.275),(-19.949999,4.275),(19.949999,4.275),(19.949999,-4.275)])]
                              -> equilateral cross with cross-element corresponding to 70% of the minumum of cellWidth and cellHeight
-
 -}
+
 crossPicture :: Picture
 crossPicture  = pictures [ rotate 45 $ rectangleSolid length thickness
                  , rotate (-45) $ rectangleSolid length thickness
@@ -52,9 +48,8 @@ crossPicture  = pictures [ rotate 45 $ rectangleSolid length thickness
     EXAMPLES:   
                 shipPicture == Pictures [Polygon [(-19.949999,-19.949999),(-19.949999,19.949999),(19.949999,19.949999),(19.949999,-19.949999)]]
                             -> rectangle with 70% of cellWidth as width and 70% of cellHeight as height
-
-
 -}
+
 shipPicture :: Picture
 shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
 
@@ -66,8 +61,8 @@ shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
     EXAMPLES: 
                 boardGrid ((0,0), (screenWidth/2, screenHeight/2))                             -> n^2-sized grid positioned in the first quadrant
                 boardGrid ((-screenWidth/2, -screenHeight/2), (screenWidth/2, screenHeight/2)) -> n^2-sized grid starting from bottom left and finishing in the upper right corner
-    
 -}
+
 boardGrid :: BoardPos -> Picture
 boardGrid boardPos@((x1,y1),(x2,y2)) =
     pictures
@@ -88,6 +83,7 @@ boardGrid boardPos@((x1,y1),(x2,y2)) =
                 movingShipPicture (0,0) Horizontal 3    == Translate 85.5 28.5 (Pictures [Polygon [(-85.5,-28.5),(-85.5,28.5),(85.5,28.5),(85.5,-28.5)]])
                                                         -> 3 cells long rectangle laying horizontally to the right from (0,0)
 -}
+
 movingShipPicture :: CellCoord -> Direction -> ShipSize -> Picture
 movingShipPicture (c, r) Horizontal s =  translate (cellWidth * (0.5 * fromIntegral s + fromIntegral c)) (cellHeight * (0.5 + fromIntegral r)) 
                                           (pictures [ rectangleSolid (cellWidth * fromIntegral s) cellHeight])
@@ -102,8 +98,8 @@ movingShipPicture (c, r) Vertical s   =  translate (cellWidth * (fromIntegral c 
                 showPlacingShips []                         -> Blank
                 showPlacingShips ((0,0)), Horizontal, 3)    -> 3 cells long rectangle laying horizontally to the right from (0,0) 
                 showPlacingShips ((5,5), Vertical, 2)       -> 2 cells long rectangle laying vertically downways from (5,5)  
-
 -}
+
 showPlacingShip :: Ships -> Picture
 showPlacingShip [] = Blank
 showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s 
@@ -117,6 +113,7 @@ showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s
                 explosionPicture 50     == ThickCircle 50.0 10.0
                 explosionPicture (-1)   == ThickCircle (-1.0) 10.0
 -}
+
 explosionPicture :: Radius -> Picture
 explosionPicture r = thickCircle r 10
 
@@ -128,8 +125,8 @@ explosionPicture r = thickCircle r 10
     EXAMPLES: 
                 fadedArc 45 50 -> 45 angle arc of radius 50 with a green gradient
                 fadedArc 0 50  ->  Blank
-
 -}
+
 fadedArc :: Int -> Float -> Picture
 fadedArc angle r = 
     pictures
@@ -145,8 +142,8 @@ fadedArc angle r =
     EXAMPLES:
                 radarPicture ([1..5], 45) boardAIPos -> radar arc with radius 5 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
                 radarPicture ([1], 45) boardAIPos -> radar arc with radius 1 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
-
 -}
+
 radarPicture :: Radar -> BoardPos ->  Picture
 radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =     
     translate (0.5 * (x1 + x2)) (0.5 * (y1 + y2)) 
@@ -161,19 +158,6 @@ radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =
 
 
 ---------------------------- Info to user ----------------------------
-
-
-
-
-
-
-                                                  
-
-
-
-
-
-
 
 displayStats :: BoardPos -> Stats -> Picture
 displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTranslate (y2 - 0.7 * screenDivider) $ pic "User wins: " n1, 
@@ -234,9 +218,8 @@ displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) 
 
 
 {- combineDisplayText boardpos gamestage winner round stats
-    
- 
 -}
+
 combineDisplayText :: BoardPos -> GameStage -> Maybe Player -> Round -> Stats -> Picture
 combineDisplayText pos stage winner round stats = pictures [if winner == Nothing then displayGameStage pos stage else Blank
                                                             , displayWinner pos winner
@@ -254,7 +237,6 @@ combineDisplayText pos stage winner round stats = pictures [if winner == Nothing
     EXAMPLES:
                 displayGameName boardUserPos == Translate 585.0 510.0 (Pictures [Scale 0.33333334 0.33333334 (Text "BATTLESHIPS")])
                                              -> picture with BATTLESHIPS in the middle upper part of the screen
-
 -}
 
 displayGameName :: BoardPos -> Picture
@@ -274,7 +256,8 @@ displayGameName ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y2 - 
     EXAMPLES: 
                snapPictureToCell crossPicture boardAIPos (0,0)  -> puts a cross on cell (0,0), bottom left corner of gameBoardAI
                snapPictureToCell shipPicture boardUserPos (0,0) -> puts a ship on cell (0,0), bottom left corner of gameBoardUser
- -} 
+ -}
+
 snapPictureToCell :: Picture -> BoardPos -> CellCoord -> Picture
 snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y picture
     where x = x1 + fromIntegral c * cellWidth + cellWidth / 2
@@ -290,8 +273,8 @@ snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y pict
     EXAMPLES: 
                cellsToPicture (gameBoardUser initGame) boardUserPos (Empty Checked) crossPicture    -> Blank
                cellsToPicture (gameBoardUser initGame) boardUserPos (Empty NotChecked) crossPicture -> crosses on each cell-location in boardUserPos
-
 -}
+
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
 cellsToPicture board pos c pic =  pictures
                             $ map (snapPictureToCell pic pos . fst)
@@ -305,6 +288,7 @@ cellsToPicture board pos c pic =  pictures
                 displayCells (gameBoardUser initGame) boardUserPos True  -> shows all cells of userBoard (hits, misses, unchecked, ships)
                 displayCells (gameBoardUser initGame) boardUserPos False -> shows all cells of userBoard except unhit ships (hits, misses, unchecked)
 -}
+
 displayCells :: Board -> BoardPos -> Bool -> Picture
 displayCells board pos show = pictures 
                                 [color missColor $ cellsToPicture board pos (Empty Checked) crossPicture
@@ -318,8 +302,8 @@ displayCells board pos show = pictures
     RETURNS: translated (explosionPicture of radius r at pos) up to the right half screenWidth and screenHeight if show, else Blank
     EXAMPLES: 
                 moveExplosion 30 (0,0) True -> circle of radius 30 at screencoords (0+screenWidth/2, 0+screenHeight/2)
-
 -}
+
 moveExplosion :: Radius -> ScreenCoord -> Bool -> Picture 
 moveExplosion _ _ False = Blank
 moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
@@ -336,8 +320,8 @@ moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate 
                                                 two empty boardgrids each with a spinning radar. 
                                                 User information between boards. 
                                                 Displaying first ship on the left board.
-
 -}
+
 gameToPicture :: Game -> Picture
 gameToPicture game =
     pictures [color radarColor $ pictures [radarPicture radar boardUserPos, radarPicture radar boardAIPos],
@@ -371,6 +355,7 @@ gameToPicture game =
                                                 User information between boards. 
                                                 Displaying first ship on the left board.
 -}
+
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))
                           (screenHeight * (-0.5))

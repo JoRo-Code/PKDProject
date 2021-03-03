@@ -1,9 +1,6 @@
 module Main where
-
 import Graphics.Gloss
-import Graphics.Gloss.Data.Color
 import System.Random
-
 import Game         -- initialGame
 import Logic        -- eventHandler
 import Rendering    -- drawGame
