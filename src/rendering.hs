@@ -35,8 +35,7 @@ radarThickness = 3
     https://github.com/tsoding/profun/blob/master/functional/src/Rendering.hs
     RETURNS: picture of a cross proportional to mininum of cellWidth and cellHeight
     EXAMPLES: 
-                crossPicture == Pictures [Rotate 45.0 (Polygon [(-19.949999,-4.275),(-19.949999,4.275),(19.949999,4.275),(19.949999,-4.275)]),Rotate (-45.0) (Polygon [(-19.949999,-4.275),(-19.949999,4.275),(19.949999,4.275),(19.949999,-4.275)])]
-                             -> equilateral cross with cross-element corresponding to 70% of the minumum of cellWidth and cellHeight
+                crossPicture    -> equilateral cross with cross-element corresponding to 70% of the minumum of cellWidth and cellHeight
 
 -}
 crossPicture :: Picture
@@ -50,8 +49,7 @@ crossPicture  = pictures [ rotate 45 $ rectangleSolid length thickness
     creates block proportional to cellsizes
     RETURNS: picture of filled rectangle proportional to cellWidth and cellHeight
     EXAMPLES:   
-                shipPicture == Pictures [Polygon [(-19.949999,-19.949999),(-19.949999,19.949999),(19.949999,19.949999),(19.949999,-19.949999)]]
-                            -> rectangle with 70% of cellWidth as width and 70% of cellHeight as height
+                shipPicture     -> rectangle with 70% of cellWidth as width and 70% of cellHeight as height
 
 
 -}
@@ -85,8 +83,7 @@ boardGrid boardPos@((x1,y1),(x2,y2)) =
     PRE: shipsize >= 0, valid coord
     RETURNS: picture of a rectangle of shipsize beginning at coord in direction.
     EXAMPLES:
-                movingShipPicture (0,0) Horizontal 3    == Translate 85.5 28.5 (Pictures [Polygon [(-85.5,-28.5),(-85.5,28.5),(85.5,28.5),(85.5,-28.5)]])
-                                                        -> 3 cells long rectangle laying horizontally to the right from (0,0)
+                movingShipPicture (0,0) Horizontal 3    -> 3 cells long rectangle laying horizontally to the right from (0,0)
 -}
 movingShipPicture :: CellCoord -> Direction -> ShipSize -> Picture
 movingShipPicture (c, r) Horizontal s =  translate (cellWidth * (0.5 * fromIntegral s + fromIntegral c)) (cellHeight * (0.5 + fromIntegral r)) 
@@ -126,8 +123,8 @@ explosionPicture r = thickCircle r 10
     PRE: angle >= 0
     RETURNS: arc with angle ang and radius r with a green gradient with ang sections. 
     EXAMPLES: 
-                fadedArc 45 50 -> 45 angle arc of radius 50 with a green gradient
-                fadedArc 0 50  ->  Blank
+                fadedArc 45 50      -> 45 angle arc of radius 50 with a green gradient
+                fadedArc 0 50       -> Blank
 
 -}
 fadedArc :: Int -> Float -> Picture
@@ -143,8 +140,8 @@ fadedArc angle r =
     PRE: radiuses not empty
     RETURNS: radar arc with max radiuses as radius, beginning at middle of boardpos, rotated at angle, enclosed by circles of radiuses.
     EXAMPLES:
-                radarPicture ([1..5], 45) boardAIPos -> radar arc with radius 5 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
-                radarPicture ([1], 45) boardAIPos -> radar arc with radius 1 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
+                radarPicture ([1..5], 45) boardAIPos    -> radar arc with radius 5 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
+                radarPicture ([1], 45) boardAIPos       -> radar arc with radius 1 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
 
 -}
 radarPicture :: Radar -> BoardPos ->  Picture
@@ -164,35 +161,64 @@ radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =
 
 
 
+{- displayStats boardpos stats
+    shows stats in the middle of the screen
+    RETURNS: picture of stats to the middle right of boardpos
+    EXAMPLES: 
+                displayStats boardUserPos ((User, 0), (AI, 0))      ->  Text "User wins: 0"
+                                                                        Text "AI wins: 0"
+                                                                        (positioned to the middle right of boardUserPos)
 
+                displayStats boardUserPos ((User, 5), (AI, (-1)))   ->  Text "User wins: 5"
+                                                                        Text "AI wins: -1"
+                                                                        (positioned to the middle right of boardUserPos)
 
-
-                                                  
-
-
-
-
-
-
-
+-}                                        
 displayStats :: BoardPos -> Stats -> Picture
-displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTranslate (y2 - 0.7 * screenDivider) $ pic "User wins: " n1, 
-                                                                  translate xTranslate (y2 - 0.85 * screenDivider) $ pic "AI wins: " n2]
+displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTranslate (y2 - 0.7 * screenDivider) $ pic "User wins: " n1 
+                                                                  , translate xTranslate (y2 - 0.85 * screenDivider) $ pic "AI wins: " n2]
                                                         where sc = screenDivider / 1100
                                                               xTranslate = x2 + 0.1 * screenDivider
                                                               pic s stat = pictures [scale sc sc $ text $ s ++ show stat]
                                                   
-                                                     
+{- displayCurrentRound boardpos round
+    shows current round in the middle part of screen
+    RETURNS: picture of round to the upper right of boardpos
+    EXAMPLES: 
+               displayCurrentRound boardUserPos 1       -> Text "Round 1"
+                                                            (positioned to the upper right of boardUserPos)
+               displayCurrentRound boardUserPos (-1)    -> Text "Round -1"
+                                                            (positioned to the upper right of boardUserPos)
+-}                                                     
 displayCurrentRound :: BoardPos -> Round -> Picture
 displayCurrentRound ((x1,y1),(x2,y2)) round = translate (x2 + 0.1 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
                                                         where sc = screenDivider / 1100
 
 
+{- displayArrowInstruction boardpos message
+    shows message in lower middle part of screen 
+    RETURNS: picture fo message to the lower right of boardpos
+    EXAMPLES: 
+                displayArrowInstruction boardUserPos "Shoot here ---->"     ->   Text "Shoot here ---->"
+                                                                                 (positioned to the lower right of boardUserPos) 
+                displayArrowInstruction boardUserPos "<---- Place here"     ->   Text "<---- Place here"
+                                                                                 (positioned to the lower right of boardUserPos) 
 
+-}
 displayArrowInstruction  :: BoardPos -> String -> Picture
 displayArrowInstruction ((x1,y1),(x2,y2)) s = translate (x2 + 0.05 * screenDivider) (y1 + 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 1400
 
+
+{- displayRestartInstructions boardpos
+    shows restart-message to the right of boardpos
+    RETURNS: picture of restart message to the lower right of boardpos
+    EXAMPLES: 
+                displayRestartInstructions boardUserPos -> Text "Left mouse button to"
+                                                           Text "play next round,"
+                                                           (positioned to the lower right of boardUserPos)  
+
+-}
 displayRestartInstructions :: BoardPos -> Picture
 displayRestartInstructions ((x1,y1),(x2,y2)) = pictures $ concatMap  
                                                (\i -> [translate xTranslate (y2 - (1 + 0.1 * fromIntegral i) * screenDivider) 
@@ -202,7 +228,21 @@ displayRestartInstructions ((x1,y1),(x2,y2)) = pictures $ concatMap
                                                      strings = ["Left mouse button to", "play next round,", "escape to quit"]
                                                      xTranslate = x2 + 0.1 * screenDivider   
 
+{- displayInstructions boardpos stage
+    shows info-message depending on stage
+    PRE: stage /= (Placing AI || Shooting AI)
+    RETURNS: picture of placing-message if Placing User or shooting-message if Shooting User, positioned in to the lower right of boardpos. 
+    EXAMPLES: 
+                displayInstructions boardUserPos (Placing User)  -> Text "Move ship with arrow keys,"
+                                                                    Text "rotate with r and "
+                                                                    Text "confirm placement with enter" 
+                                                                    (positioned to the lower right of boardUserPos)
 
+                displayInstructions boardUserPos (Shooting User) -> Text "Click on a cell on"
+                                                                    Text "the enemy's board to shoot"
+                                                                    (positioned to the lower right of boardUserPos)
+
+-}
 displayInstructions :: BoardPos -> GameStage -> Picture
 displayInstructions ((x1,y1),(x2,y2)) stage = pictures $ concatMap  
                                                (\i -> [translate xTranslate (y2 - (1.2 + 0.1 * fromIntegral i) * screenDivider) 
@@ -214,9 +254,21 @@ displayInstructions ((x1,y1),(x2,y2)) stage = pictures $ concatMap
                                                                                                 , "rotate with r and "
                                                                                                 , "confirm placement with enter"
                                                                                                 ]
-                                                                             Shooting User -> ["Click on a cell on", "the enemy's board to shoot"]
+                                                                             Shooting User ->   ["Click on a cell on"
+                                                                                                , "the enemy's board to shoot"
+                                                                                                ]
                                                      xTranslate = x2 + 0.1 * screenDivider  
 
+
+{- displayWinner boardpos player
+    shows gameover-message on screen
+    RETURNS: gameover-message depending on player in relation to boardpos, if player == Nothing then Blank.
+    EXAMPLES:
+                displayWinner boardUserPos (Just User)  -> Text "You won!" up to the right of boardUserPos
+                displayWinner boardUserPos (Just AI)    -> Text "You lost!" up to the right of boardUserPos
+                displayWinner boardUserPos Nothing      == Blank 
+
+-}
 displayWinner :: BoardPos -> Maybe Player-> Picture
 displayWinner  _ Nothing = Blank
 displayWinner ((x1,y1),(x2,y2)) player  = translate (x2 + 0.1 * screenDivider) (y2 - 0.4* screenDivider) $ pictures [scale sc sc $ text s]
@@ -225,6 +277,16 @@ displayWinner ((x1,y1),(x2,y2)) player  = translate (x2 + 0.1 * screenDivider) (
                                                    Just User -> "You won!"
                                                    Just AI   -> "You lost!"
 
+
+{- displayGameStage boardpos stage
+    shows stage on screen 
+    RETURNS: picture of stage corresponding message positioned in relation to boardpos
+    EXAMPLES:
+                displayGameStage boardUserPos (Placing User)    -> Text "Place ships!" to the upper right of boardUserPos
+                displayGameStage boardUserPos (Shooting User)   -> Text "Shoot enemy!" to the upper right of boardUserPos
+
+
+-}
 displayGameStage :: BoardPos -> GameStage -> Picture
 displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) (y2 - 0.4 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 1100
@@ -233,9 +295,20 @@ displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) 
                                                               Shooting User -> "Shoot enemy!"
 
 
-{- combineDisplayText boardpos gamestage winner round stats
-    
- 
+{- combineDisplayText boardpos stage winner round stats
+    combines gamestage, winner, round and stats into one picture
+    RETURNS: picture of stage, winner, round and stats positioned in relation to boardpos
+    EXAMPLES: 
+                combineDisplayText boardUserPos (Placing User) Nothing 1 ((User, 0), (AI, 0))        -> displaying right of userBoard: 
+                                                                                                                gamestage   = "Place Ships!
+                                                                                                                round       = 1
+                                                                                                                score       = (0,0)
+
+                combineDisplayText boardUserPos (Placing User) (Just User) 1 ((User, 1), (AI, 0))    -> displaying right of userBoard: 
+                                                                                                                winner      = "You won!"
+                                                                                                                round       = 1
+                                                                                                                score       = (1,0)
+                                                                                                        
 -}
 combineDisplayText :: BoardPos -> GameStage -> Maybe Player -> Round -> Stats -> Picture
 combineDisplayText pos stage winner round stats = pictures [if winner == Nothing then displayGameStage pos stage else Blank
@@ -252,8 +325,7 @@ combineDisplayText pos stage winner round stats = pictures [if winner == Nothing
     displays the name of the game in position in relation to leftboard
     RETURNS: picture with BATTLESHIPS in a position in relation to boardpos
     EXAMPLES:
-                displayGameName boardUserPos == Translate 585.0 510.0 (Pictures [Scale 0.33333334 0.33333334 (Text "BATTLESHIPS")])
-                                             -> picture with BATTLESHIPS in the middle upper part of the screen
+                displayGameName boardUserPos -> Text "BATTLESHIPS" in the middle upper part of the screen
 
 -}
 
@@ -262,7 +334,7 @@ displayGameName ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y2 - 
                                                     where sc = screenDivider / 900
                                                           s = "BATTLESHIPS"
 
----------------------------- Combining picture components and positioning ----------------------------
+---------------------------- Combining picture components and final positioning ----------------------------
 
 
 {- snapPictureTocell pic boardpos coord
@@ -308,8 +380,8 @@ cellsToPicture board pos c pic =  pictures
 displayCells :: Board -> BoardPos -> Bool -> Picture
 displayCells board pos show = pictures 
                                 [color missColor $ cellsToPicture board pos (Empty Checked) crossPicture
-                               , color hitColor  $ cellsToPicture board pos (Ship Checked) shipPicture
-                               , if show then color shipColor $ cellsToPicture board pos (Ship NotChecked) shipPicture else Blank
+                                , color hitColor  $ cellsToPicture board pos (Ship Checked) shipPicture
+                                , if show then color shipColor $ cellsToPicture board pos (Ship NotChecked) shipPicture else Blank
                                 ]
 
 {- moveExplosion r pos show
