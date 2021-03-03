@@ -1,8 +1,6 @@
 module Game where
-
 import Data.Array
 import System.Random
-
 {- The state of a square. 
     Checked means the square has been shot at.
     NotChecked means the square has not been shot at.
@@ -105,7 +103,6 @@ type Radar = ([Radius], Angle)
      - stats represents the current user and AI stats.
      - shootAnimation holds all information for the shooting animations.
      - radarAnimation holds all information for the radar background animation.
-     - radarAngle holds information for the angle of the arc in the radar animation.
      INVARIANT: 
      - Ships cannot be placed right next to each other. 
      - Ships must not be overlapped.
@@ -113,6 +110,7 @@ type Radar = ([Radius], Angle)
      - Shots must be withing the boundaries of the board.
      - Shots cannot be fired on already shot cells.
 -}
+
 data Game = Game { gameBoardUser  :: Board , 
                    gameBoardAI    :: Board,
                    gameStage      :: GameStage,
@@ -123,11 +121,8 @@ data Game = Game { gameBoardUser  :: Board ,
                    currentRound   :: Round,
                    stats          :: Stats,
                    shootAnimation :: (HitShip, Radius, ScreenCoord, Radius, Derivative, Bool),
-                   radarAnimation :: Radar,
-                   radarAngle     :: Angle
+                   radarAnimation :: Radar
                  } deriving (Show, Eq)
-
-
 
 
 screenWidth :: Float
@@ -140,7 +135,6 @@ screenDivider :: Float
 screenDivider = 300
 
 --------------------- Solving cellWidth and cellHeight problem ---------------------
-
 
 cellWidth :: Float
 cellWidth  = (screenWidth - screenDivider) * 0.5 / fromIntegral n
@@ -156,12 +150,10 @@ boardAIPos = ((screenWidth * 0.5 + screenDivider * 0.5 ,0), (screenWidth, screen
 boardUserPos :: BoardPos
 boardUserPos = ((0,0), (screenWidth * 0.5 - screenDivider * 0.5, screenHeight))
 
-
-
-
+startRadius :: Radius
 startRadius = 0
+startDerivative :: Derivative
 startDerivative = screenWidth/2
-
 
 
 n :: BoardSize
@@ -175,11 +167,11 @@ n = 10
     RETURNS: array of empty cells of size n
     EXAMPLES: initBoard == array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)]
                   where n = 2
--} 
+-}
+
 initBoard :: Board        
 initBoard = array boardIndex $ zip (range boardIndex) (repeat $ Empty NotChecked)
             where boardIndex = ((0, 0), (n - 1, n - 1)) 
-
 
 carrier :: Ship
 carrier = ((0,0), Horizontal,5)
@@ -198,8 +190,8 @@ initShips = [carrier, battleShip, cruiser, submarine, destroyer]
 
 {- initGame 
   Creates the initial game
-
 -}
+
 initGame :: Game
 initGame = Game { gameBoardUser = initBoard,
                   gameStage     = Placing User,
@@ -210,8 +202,7 @@ initGame = Game { gameBoardUser = initBoard,
                   currentRound  = 1,
                   stats         = ((User, 0), (AI, 0)),
                   shootAnimation = (False, startRadius, (screenWidth/2,screenHeight/2), cellWidth/2, startDerivative, False),
-                  radarAnimation = radarInitial,
-                  radarAngle          = 0.0
+                  radarAnimation = radarInitial
                 }
                 where radarInitial = ([maxRadius - i * radiusOffet | i <- [0..4]], 0)
                       radiusOffet  = (screenHeight / 2) / 5

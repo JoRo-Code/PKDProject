@@ -1,15 +1,10 @@
 module Logic where
-
 import Shuffle
 import Graphics.Gloss.Interface.Pure.Game
 import System.Random
 import Data.Array
-
 import Game
-import Rendering
-
 import Data.List
-import Debug.Trace
 --import Test.HUnit
 
 {- shipsCount board
@@ -276,7 +271,7 @@ hitShip b coord = validCoordinates coord && b ! coord == Ship NotChecked
               isWithinBoard ((900.0,0.0),(1500.0,600.0)) (0, 0)     == False (when screenWidth == 1440, screenDivider == 300)
 -}
 isWithinBoard :: BoardPos -> ScreenCoord -> Bool
-isWithinBoard ((x1,y1),(x2,y2)) (x,y) = let kek = xNew >= x1 && xNew <= x2 && yNew >= y1 && yNew <= y2 in trace ("Old (x, y) " ++ show (x,y) ++ "xNew: " ++ show xNew ++ "  yNew:" ++ show yNew ++ "  " ++ show kek) $ kek
+isWithinBoard ((x1,y1),(x2,y2)) (x,y) = xNew >= x1 && xNew <= x2 && yNew >= y1 && yNew <= y2
                                       where (xNew, yNew) = (x + 0.5 * screenWidth, y + 0.5*screenHeight)
 
 {- isChecked board coord
