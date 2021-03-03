@@ -143,6 +143,20 @@ placeShipAux b (c, r) s Horizontal = placeShipAux (b // [((c, r), Ship NotChecke
    RETURNS: If placement is valid then it returns game where ship with shipsize, direction,
             starting at coord have been placed in gameBoardUser, otherwise game unchanged.
    EXAMPLES: 
+                placeShip initGame {gameBoardAI = initBoard} (0,0) 0 Horizontal     == initGame {gameBoardAI = initBoard}
+                placeShip initGame {gameBoardAI = initBoard} (-1,0) 5 Horizontal    == initGame {gameBoardAI = initBoard}
+                placeShip initGame {gameBoardAI = initBoard} (0,0) 3 Horizontal     == Game { gameBoardUser = array ((0,0),(2,2)) [((0,0),Ship NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),((1,0),Ship NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Ship NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
+                                                                                            , gameBoardAI = array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
+                                                                                            , gameStage = Placing User, shipsUser = [((0,3),Vertical,4),((0,0),Horizontal,3),((0,2),Vertical,3),((0,0),Horizontal,2)]
+                                                                                            , stackAI = []
+                                                                                            , winner = Nothing
+                                                                                            , gen = StdGen {unStdGen = SMGen 16626775891238333538 2532601429470541125}
+                                                                                            , currentRound = 1
+                                                                                            , stats = ((User,0),(AI,0))
+                                                                                            , shootAnimation = (False,0.0,(720.0,285.0),95.0,720.0,False)
+                                                                                            , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
+                                                                                            }
+                
 -}
 placeShip :: Game -> CellCoord -> ShipSize -> Direction -> Game
 placeShip game _ 0 _= game
@@ -168,6 +182,17 @@ mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + 
 {- moveShip game key
     updates the first placing ship's cellCoordinates according to key input
     RETURNS: If valid position then head of shipsUser game with new coordinates according to key, else game.
+    EXAMPLES:
+                moveShip initGame {gameBoardAI = initBoard} KeySpace                                        == initGame {gameBoardAI = initBoard} 
+                moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]} KeyLeft    == initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]}
+                moveShip initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]} KeyLeft    == initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]}
+                moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]} KeyRight   == initGame {gameBoardAI = initBoard, shipsUser = [((2,0), Horizontal,5)]}
+                moveShip initGame {gameBoardAI = initBoard, shipsUser = [((9,0), Horizontal,5)]} KeyRight   == initGame {gameBoardAI = initBoard, shipsUser = [((9,0), Horizontal,5)]}
+                moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]} KeyUp      == initGame {gameBoardAI = initBoard, shipsUser = [((1,1), Horizontal,5)]}
+                moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,9), Horizontal,5)]} KeyUp      == initGame {gameBoardAI = initBoard, shipsUser = [((1,9), Horizontal,5)]}
+                moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,1), Horizontal,5)]} KeyDown    == initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]}
+                moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]} KeyDown    == initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]}
+
 
 -}
 moveShip :: Game -> SpecialKey -> Game
@@ -187,7 +212,12 @@ moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
     PRE: shipsUser in game not empty
     RETURNS: If opposite direction is valid then head of shipsUser game with opposite direction, else game.
     EXAMPLES: 
-                rotateShip initGame {gameBoardAI = initBoard} == initGame {gameBoardAI = initBoard}
+                rotateShip initGame {gameBoardAI = initBoard}                                       == initGame {gameBoardAI = initBoard}
+                rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((0,9), Horizontal,5)]}  == initGame {gameBoardAI = initBoard, shipsUser = [((0,9), Vertical,5)]}
+                rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((0,9), Vertical,5)]}    == initGame {gameBoardAI = initBoard, shipsUser = [((0,9), Horizontal,5)]}
+                rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((9,0), Vertical,5)]}    == initGame {gameBoardAI = initBoard, shipsUser = [((9,0), Vertical,5)]} 
+                rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]}  == initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]} 
+
 
 -}
 rotateShip :: Game -> Game
