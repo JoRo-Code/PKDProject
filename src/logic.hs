@@ -756,6 +756,11 @@ test10B = TestCase $ assertEqual "placeShip edgeCase: end position outside of bo
 
 -- moving ship picture (C) --
 test1C = TestCase $ assertEqual "mouseToCell: screenWidth 1440" (14,5) (mouseToCell (100, 40) ((0.0,0.0),(600.0,600.0)))
+test2C = TestCase $ assertEqual "moveShip: left" (initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]}) (moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,0), Horizontal,5)]} KeyLeft)
+test3C = TestCase $ assertEqual "moveShip: up at upper bound" (initGame {gameBoardAI = initBoard, shipsUser = [((1,9), Horizontal,5)]}) (moveShip initGame {gameBoardAI = initBoard, shipsUser = [((1,9), Horizontal,5)]} KeyUp)
+test4C = TestCase $ assertEqual "rotateShip: horizontal to vertical at upper bound" (initGame {gameBoardAI = initBoard, shipsUser = [((0,9), Vertical,5)]}) (rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((0,9), Horizontal,5)]})
+test5C = TestCase $ assertEqual "rotateShip: horizontal to vertical at lower bound" (initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]}) (rotateShip initGame {gameBoardAI = initBoard, shipsUser = [((0,0), Horizontal,5)]})
+test6C = TestCase $ assertEqual "confirmShip" (initGame {gameBoardAI = initBoard, shipsUser = [((-1,0), Horizontal,5)]}) (confirmShip initGame {gameBoardAI = initBoard, shipsUser = [((-1,0), Horizontal,5)]}) 
 
 -- shooting user (D) --
 test1D = TestCase $ assertEqual "getCell" (Empty NotChecked) (getCell initBoard (0,0))
@@ -832,6 +837,11 @@ testsB = TestList [  test1B
                     ]
 
 testsC = TestList [  test1C
+                   , test2C
+                   , test3C
+                   , test4C
+                   , test5C
+                   , test6C
                     ]
 
 testsD = TestList [  test1D 
@@ -900,6 +910,11 @@ tests = TestList [   test1A
                    , test9B 
                    , test10B
                    , test1C
+                   , test2C
+                   , test3C
+                   , test4C
+                   , test5C
+                   , test6C
                    , test1D 
                    , test2D 
                    , test3D 
