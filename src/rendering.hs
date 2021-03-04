@@ -29,12 +29,10 @@ radarThickness = 3
     creates a cross with respect to grid-size
     Credit to Tsoding. His function is modified to be flexible with grid-size
     https://github.com/tsoding/profun/blob/master/functional/src/Rendering.hs
-    RETURNS: picture of a cross proportional to mininum of cellWidth and cellHeight
+    RETURNS: picture of a cross proportional to minimum of cellWidth and cellHeight
     EXAMPLES: 
                 crossPicture    -> equilateral cross with cross-element corresponding to 70% of the minumum of cellWidth and cellHeight
-
 -}
-
 crossPicture :: Picture
 crossPicture  = pictures [ rotate 45 $ rectangleSolid length thickness
                  , rotate (-45) $ rectangleSolid length thickness
@@ -43,14 +41,11 @@ crossPicture  = pictures [ rotate 45 $ rectangleSolid length thickness
                        thickness = 0.15 * min cellWidth cellHeight
 
 {- shipPicture
-    creates block proportional to cellsizes
+    creates a picture of a ship cell
     RETURNS: picture of filled rectangle proportional to cellWidth and cellHeight
     EXAMPLES:   
                 shipPicture     -> rectangle with 70% of cellWidth as width and 70% of cellHeight as height
-
-
 -}
-
 shipPicture :: Picture
 shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
 
@@ -63,7 +58,6 @@ shipPicture = pictures [ rectangleSolid (0.7 * cellWidth) (0.7 * cellHeight)]
                 boardGrid ((0,0), (screenWidth/2, screenHeight/2))                             -> n^2-sized grid positioned in the first quadrant
                 boardGrid ((-screenWidth/2, -screenHeight/2), (screenWidth/2, screenHeight/2)) -> n^2-sized grid starting from bottom left and finishing in the upper right corner
 -}
-
 boardGrid :: BoardPos -> Picture
 boardGrid boardPos@((x1,y1),(x2,y2)) =
     pictures
@@ -83,7 +77,6 @@ boardGrid boardPos@((x1,y1),(x2,y2)) =
     EXAMPLES:
                 movingShipPicture (0,0) Horizontal 3    -> 3 cells long rectangle laying horizontally to the right from (0,0)
 -}
-
 movingShipPicture :: CellCoord -> Direction -> ShipSize -> Picture
 movingShipPicture (c, r) Horizontal s =  translate (cellWidth * (0.5 * fromIntegral s + fromIntegral c)) (cellHeight * (0.5 + fromIntegral r)) 
                                           (pictures [ rectangleSolid (cellWidth * fromIntegral s) cellHeight])
@@ -99,7 +92,6 @@ movingShipPicture (c, r) Vertical s   =  translate (cellWidth * (fromIntegral c 
                 showPlacingShips ((0,0)), Horizontal, 3)    -> 3 cells long rectangle laying horizontally to the right from (0,0) 
                 showPlacingShips ((5,5), Vertical, 2)       -> 2 cells long rectangle laying vertically downways from (5,5)  
 -}
-
 showPlacingShip :: Ships -> Picture
 showPlacingShip [] = Blank
 showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s 
@@ -113,7 +105,6 @@ showPlacingShip ((coord, d, s): xs) = movingShipPicture coord d s
                 explosionPicture 50     == ThickCircle 50.0 10.0
                 explosionPicture (-1)   == ThickCircle (-1.0) 10.0
 -}
-
 explosionPicture :: Radius -> Picture
 explosionPicture r = thickCircle r 10
 
@@ -125,9 +116,7 @@ explosionPicture r = thickCircle r 10
     EXAMPLES: 
                 fadedArc 45 50      -> 45 angle arc of radius 50 with a green gradient
                 fadedArc 0 50       -> Blank
-
 -}
-
 fadedArc :: Int -> Float -> Picture
 fadedArc angle r = 
     pictures
@@ -144,7 +133,6 @@ fadedArc angle r =
                 radarPicture ([1..5], 45) boardAIPos    -> radar arc with radius 5 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
                 radarPicture ([1], 45) boardAIPos       -> radar arc with radius 1 beginning at middle of boardAIPos rotated at 45 degrees enclosed by circles of radiuses 1,2,3,4,5
 -}
-
 radarPicture :: Radar -> BoardPos ->  Picture
 radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =     
     translate (0.5 * (x1 + x2)) (0.5 * (y1 + y2)) 
@@ -161,7 +149,6 @@ radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =
 ---------------------------- Info to user ----------------------------
 
 
-
 {- displayStats boardpos stats
     shows stats in the middle of the screen
     RETURNS: picture of stats to the middle right of boardpos
@@ -174,7 +161,6 @@ radarPicture (radiuses, angle) ((x1,y1),(x2,y2)) =
                                                                         Text "AI wins: -1"
                                                                         (positioned to the middle right of boardUserPos)
 -}
-
 displayStats :: BoardPos -> Stats -> Picture
 displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTranslate (y2 - 0.7 * screenDivider) $ pic "User wins: " n1 
                                                                   , translate xTranslate (y2 - 0.85 * screenDivider) $ pic "AI wins: " n2]
@@ -191,7 +177,6 @@ displayStats ((x1,y1),(x2,y2)) ((user, n1), (ai, n2)) = pictures [translate xTra
                displayCurrentRound boardUserPos (-1)    -> Text "Round -1"
                                                             (positioned to the upper right of boardUserPos)
 -}
-
 displayCurrentRound :: BoardPos -> Round -> Picture
 displayCurrentRound ((x1,y1),(x2,y2)) round = translate (x2 + 0.1 * screenDivider) (y2 - 0.55 * screenDivider) $ pictures [scale sc sc $ text $ "Round " ++ show round]
                                                         where sc = screenDivider / 1100
@@ -206,7 +191,6 @@ displayCurrentRound ((x1,y1),(x2,y2)) round = translate (x2 + 0.1 * screenDivide
                 displayArrowInstruction boardUserPos "<---- Place here"     ->   Text "<---- Place here"
                                                                                  (positioned to the lower right of boardUserPos) 
 -}
-
 displayArrowInstruction  :: BoardPos -> String -> Picture
 displayArrowInstruction ((x1,y1),(x2,y2)) s = translate (x2 + 0.05 * screenDivider) (y1 + 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 1400
@@ -220,7 +204,6 @@ displayArrowInstruction ((x1,y1),(x2,y2)) s = translate (x2 + 0.05 * screenDivid
                                                            Text "play next round,"
                                                            (positioned to the lower right of boardUserPos)  
 -}
-
 displayRestartInstructions :: BoardPos -> Picture
 displayRestartInstructions ((x1,y1),(x2,y2)) = pictures $ concatMap  
                                                (\i -> [translate xTranslate (y2 - (1 + 0.1 * fromIntegral i) * screenDivider) 
@@ -244,7 +227,6 @@ displayRestartInstructions ((x1,y1),(x2,y2)) = pictures $ concatMap
                                                                     Text "the enemy's board to shoot"
                                                                     (positioned to the lower right of boardUserPos)
 -}
-
 displayInstructions :: BoardPos -> GameStage -> Picture
 displayInstructions ((x1,y1),(x2,y2)) stage = pictures $ concatMap  
                                                (\i -> [translate xTranslate (y2 - (1.2 + 0.1 * fromIntegral i) * screenDivider) 
@@ -261,7 +243,6 @@ displayInstructions ((x1,y1),(x2,y2)) stage = pictures $ concatMap
                                                                                                 ]
                                                      xTranslate = x2 + 0.1 * screenDivider  
 
-
 {- displayWinner boardpos player
     shows gameover-message on screen
     RETURNS: gameover-message depending on player in relation to boardpos, if player == Nothing then Blank.
@@ -270,7 +251,6 @@ displayInstructions ((x1,y1),(x2,y2)) stage = pictures $ concatMap
                 displayWinner boardUserPos (Just AI)    -> Text "You lost!" up to the right of boardUserPos
                 displayWinner boardUserPos Nothing      == Blank 
 -}
-
 displayWinner :: BoardPos -> Maybe Player-> Picture
 displayWinner  _ Nothing = Blank
 displayWinner ((x1,y1),(x2,y2)) player  = translate (x2 + 0.1 * screenDivider) (y2 - 0.4* screenDivider) $ pictures [scale sc sc $ text s]
@@ -287,7 +267,6 @@ displayWinner ((x1,y1),(x2,y2)) player  = translate (x2 + 0.1 * screenDivider) (
                 displayGameStage boardUserPos (Placing User)    -> Text "Place ships!" to the upper right of boardUserPos
                 displayGameStage boardUserPos (Shooting User)   -> Text "Shoot enemy!" to the upper right of boardUserPos
 -}
-
 displayGameStage :: BoardPos -> GameStage -> Picture
 displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) (y2 - 0.4 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 1100
@@ -310,7 +289,6 @@ displayGameStage ((x1,y1),(x2,y2)) stage = translate (x2 + 0.1 * screenDivider) 
                                                                                                                 round       = 1
                                                                                                                 score       = (1,0)
 -}
-
 combineDisplayText :: BoardPos -> GameStage -> Maybe Player -> Round -> Stats -> Picture
 combineDisplayText pos stage winner round stats = pictures [if winner == Nothing then displayGameStage pos stage else Blank
                                                             , displayWinner pos winner
@@ -328,7 +306,6 @@ combineDisplayText pos stage winner round stats = pictures [if winner == Nothing
     EXAMPLES:
                 displayGameName boardUserPos -> Text "BATTLESHIPS" in the middle upper part of the screen
 -}
-
 displayGameName :: BoardPos -> Picture
 displayGameName ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y2 - 0.2 * screenDivider) $ pictures [scale sc sc $ text s]
                                                     where sc = screenDivider / 900
@@ -347,7 +324,6 @@ displayGameName ((x1,y1),(x2,y2)) = translate (x2 + 0.05 * screenDivider) (y2 - 
                snapPictureToCell crossPicture boardAIPos (0,0)  -> puts a cross on cell (0,0), bottom left corner of gameBoardAI
                snapPictureToCell shipPicture boardUserPos (0,0) -> puts a ship on cell (0,0), bottom left corner of gameBoardUser
  -}
-
 snapPictureToCell :: Picture -> BoardPos -> CellCoord -> Picture
 snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y picture
     where x = x1 + fromIntegral c * cellWidth + cellWidth / 2
@@ -363,7 +339,6 @@ snapPictureToCell picture boardPos@((x1,y1),(x2,y2)) (c, r) = translate x y pict
                cellsToPicture (gameBoardUser initGame) boardUserPos (Empty Checked) crossPicture    -> Blank
                cellsToPicture (gameBoardUser initGame) boardUserPos (Empty NotChecked) crossPicture -> crosses on each cell-location in boardUserPos
 -}
-
 cellsToPicture :: Board -> BoardPos -> Cell -> Picture -> Picture
 cellsToPicture board pos c pic =  pictures
                             $ map (snapPictureToCell pic pos . fst)
@@ -377,7 +352,6 @@ cellsToPicture board pos c pic =  pictures
                 displayCells (gameBoardUser initGame) boardUserPos True  -> shows all cells of userBoard (hits, misses, unchecked, ships)
                 displayCells (gameBoardUser initGame) boardUserPos False -> shows all cells of userBoard except unhit ships (hits, misses, unchecked)
 -}
-
 displayCells :: Board -> BoardPos -> Bool -> Picture
 displayCells board pos show = pictures 
                                 [color missColor $ cellsToPicture board pos (Empty Checked) crossPicture
@@ -392,7 +366,6 @@ displayCells board pos show = pictures
     EXAMPLES: 
                 moveExplosion 30 (0,0) True -> circle of radius 30 at screencoords (0+screenWidth/2, 0+screenHeight/2)
 -}
-
 moveExplosion :: Radius -> ScreenCoord -> Bool -> Picture 
 moveExplosion _ _ False = Blank
 moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate x y (explosionPicture r))
@@ -409,7 +382,6 @@ moveExplosion r (x,y) _ = translate (screenWidth/2) (screenHeight/2) (translate 
                                                 User information between boards. 
                                                 Displaying first ship on the left board.
 -}
-
 gameToPicture :: Game -> Picture
 gameToPicture game =
     pictures  [ color radarColor $ pictures [radarPicture radar boardUserPos, radarPicture radar boardAIPos]
@@ -442,7 +414,6 @@ gameToPicture game =
                                                 User information between boards. 
                                                 Displaying first ship on the left board.
 -}
-
 drawGame :: Game -> Picture
 drawGame game = translate (screenWidth * (-0.5))
                           (screenHeight * (-0.5))

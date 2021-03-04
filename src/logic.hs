@@ -210,7 +210,7 @@ moveShip game keyDir | validCoordinates (endCoordinates newCoord s d)
                                         _        -> (c, r)
 
 {- rotateShip game 
-    changes the first placing ship's direction
+    changes the current placing ship's direction
     PRE: shipsUser in game not empty
     RETURNS: If opposite direction is valid then head of shipsUser game with opposite direction, else game.
     EXAMPLES: 
@@ -267,20 +267,18 @@ confirmShip game | validShipPlacement board coord s d =
     EXAMPLES: getCell (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0,1) == Ship Checked
               getCell (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0,0) == Empty NotChecked
 -}
-
 getCell :: Board -> CellCoord -> Cell
 getCell b c = b ! c
 
 {- checkCell board coord
     Changes the state of a cell to checked
     PRE: coord in board
-    RETURNS: if coord == unchecked then board with checked coord, else board.
+    RETURNS: if coord == NotChecked then board with checked coord, else board.
     EXAMPLES: checkCell  (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                          ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0, 0) 
                          == array ((0,0),(1,1)) [((0,0),Empty Checked),((0,1),Ship Checked),
                                   ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]
 -}
-
 checkCell :: Board -> CellCoord -> Board
 checkCell b (c, r) = case getCell b (c, r) of
                       Empty NotChecked -> b // [((c, r), Empty Checked)]   
@@ -296,7 +294,6 @@ checkCell b (c, r) = case getCell b (c, r) of
               getState (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                        ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0, 1) == Checked
 -}
-
 getState :: Board -> CellCoord -> SquareState
 getState b c =  case getCell b c of
                      Empty s -> s
@@ -310,7 +307,6 @@ getState b c =  case getCell b c of
               hitShip (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship NotChecked),
                       ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0, 1) == True
 -}
-
 hitShip :: Board -> CellCoord -> Bool 
 hitShip b coord = validCoordinates coord && b ! coord == Ship NotChecked
 
@@ -320,7 +316,6 @@ hitShip b coord = validCoordinates coord && b ! coord == Ship NotChecked
     EXAMPLES: isWithinBoard ((900.0,0.0),(1500.0,600.0)) (200, 100) == True (when screenWidth == 1440, screenDivider == 300)
               isWithinBoard ((900.0,0.0),(1500.0,600.0)) (0, 0)     == False (when screenWidth == 1440, screenDivider == 300)
 -}
-
 isWithinBoard :: BoardPos -> ScreenCoord -> Bool
 isWithinBoard ((x1,y1),(x2,y2)) (x,y) = xNew >= x1 && xNew <= x2 && yNew >= y1 && yNew <= y2
                                       where (xNew, yNew) = (x + 0.5 * screenWidth, y + 0.5*screenHeight)
@@ -328,32 +323,30 @@ isWithinBoard ((x1,y1),(x2,y2)) (x,y) = xNew >= x1 && xNew <= x2 && yNew >= y1 &
 {- isChecked board coord
     evaluates if coord is checked
     PRE: coord in board
-    RETURNS: True if coord == checked, else False.
+    RETURNS: True if coord == Checked, else False.
     EXAMPLES: isChecked (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                         ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0,0) == False
               isChecked (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                         ((1,0),Empty NotChecked),((1,1),Empty NotChecked)]) (0,1) == True
 -}
-
 isChecked :: Board -> CellCoord -> Bool
 isChecked b coord = s == Checked
         where s = getState b coord
 
 {- allShipsChecked board 
-    checks if board has won
+    checks if all ships on board are Checked
     RETURNS: True if all ships are checked on board, else false
     EXAMPLES: allShipsChecked (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                               ((1,0),Empty NotChecked),((1,1), Ship NotChecked)]) == False
               allShipsChecked (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                               ((1,0),Empty NotChecked),((1,1), Ship Checked)]) == True
 -}
-
 allShipsChecked :: Board -> Bool
 allShipsChecked b = not $ any (\cell -> cell == Ship NotChecked) b
 
 {- checkWin boardUser boardAI 
-    checks if user or AI won
-    RETURNS: the player who won first
+    checks if user or AI has won
+    RETURNS: the player who won first, if no winner it returns Nothing
     EXAMPLES: checkWin (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
                        ((1,0), Ship Checked),((1,1), Ship Checked)])
                        (array ((0,0),(1,1)) [((0,0),Empty NotChecked),((0,1),Ship Checked),
@@ -370,7 +363,6 @@ allShipsChecked b = not $ any (\cell -> cell == Ship NotChecked) b
                        ((1,0), Ship NotChecked),((1,1), Ship NotChecked)])
                        == Nothing
 -}
-
 checkWin :: Board -> Board -> Maybe Player
 checkWin boardUser boardAI = case (allShipsChecked boardUser, allShipsChecked boardAI) of
                              (True, True)  -> Just User
@@ -385,7 +377,6 @@ checkWin boardUser boardAI = case (allShipsChecked boardUser, allShipsChecked bo
               updateStats ((User, 1), (AI, 1)) (Just AI)   == ((User, 1), (AI, 2))
               updateStats ((User, 1), (AI, 1)) Nothing     == ((User, 1), (AI, 1))
 -}
-
 updateStats :: Stats -> Maybe Player -> Stats
 updateStats s@((user, n1), (ai, n2)) player = case player of 
                                          Just User -> ((user, n1 + 1), (ai, n2))
@@ -394,7 +385,7 @@ updateStats s@((user, n1), (ai, n2)) player = case player of
 
 {- playerShoot game coord 
     shoots the coord for user. Calls AI to shoot. Updates game accordingly
-    RETURNS: game after user and AI have shot. 
+    RETURNS: game after AIboard have been shot at coord, and AI have shot on the user's board
     EXAMPLES:   playerShoot initGame {gameBoardAI = initBoard } (-1,0)   == initGame {gameBoardAI = initBoard } 
                 playerShoot initGame {gameBoardAI = initBoard } (0,0)    == game =  { gameBoardUser = array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked)
                                                                                                                             , ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked)
@@ -413,7 +404,6 @@ updateStats s@((user, n1), (ai, n2)) player = case player of
                                                                                     , radarAnimation = ([285.0,228.0,171.0,114.0,57.0],0.0)
                                                                                     }
 -}
-
 playerShoot :: Game -> CellCoord -> Game
 playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI game) coord)
                         = game {gameBoardAI = shotAIboard, 
@@ -444,9 +434,9 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
 allCoords :: [CellCoord]
 allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
 
-{- findValidDirectionalPlacements board coords shipsize direction
+{- findValidDirectionalPlacements board coords size direction
    finds possible positions of a ship in a certain direction
-   RETURNS: all possible valid coords of ship with direction on board
+   RETURNS: all possible valid coords of ship, with size and direction, on board
    EXAMPLES: findValidDirectionalPlacements (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
                                             ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
                                             ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]) 
@@ -462,7 +452,7 @@ findValidDirectionalPlacements :: Board -> [CellCoord] -> ShipSize ->  Direction
 findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filter (\coord -> validShipPlacement b coord s d) coords
                  
 {- findAllValidPlacements board ship 
-    finds all valid placments of ship on board
+    finds all valid placements of ship on board
     RETURNS: all valid placements of ship on board
     EXAMPLES: findAllValidPlacements (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
               ((0,1),Empty NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),
@@ -470,6 +460,11 @@ findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filte
               ((2,1),Empty NotChecked),((2,2),Empty NotChecked)]) 3
               == [((0,0),Horizontal),((0,1),Horizontal),((0,2),Horizontal),
                  ((0,2),Vertical),((1,2),Vertical),((2,2),Vertical)]
+              findAllValidPlacements (array ((0,0),(2,2)) [((0,0),Ship NotChecked),
+              ((0,1),Ship NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),
+              ((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Empty NotChecked),
+              ((2,1),Empty NotChecked),((2,2),Empty NotChecked)]) 3
+              == [((2,2),Vertical)]
 -}
 findAllValidPlacements :: Board -> ShipSize -> [(CellCoord, Direction)]
 findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizontal ++ findValidDirectionalPlacements b allCoords s Vertical 
@@ -558,7 +553,7 @@ aiShootList = assocs
 
 {- aiPrio sl acc
    sorts a ShootList so AI prioritises cells that are not next to each other
-   RETURNS: a ShootList consisting of sl in prioritised order
+   RETURNS: acc; a ShootList consisting of sl in prioritised order
    EXAMPLES: aiPrio [((0,0),Empty NotChecked),
                     ((0,1),Empty Checked),((0,2),Empty NotChecked),
                     ((1,0),Ship Checked),((1,1),Ship Checked),
@@ -578,14 +573,14 @@ aiPrio (x:xs) acc
 
 {- filterShootList board gen
    creates a ShootList with random order of all cells with state NotChecked from board with gen and sorts by priority
-   RETURNS: a tuple consisting of a ShootList of all cells with state NotChecked and StdGen
+   RETURNS: a tuple consisting of a ShootList of all cells with state NotChecked on board, and StdGen from gen
    EXAMPLES: fst (filterShootList (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
                                   ((0,1),Empty Checked),((0,2),Empty NotChecked),
                                   ((1,0),Ship Checked),((1,1),Ship Checked),
                                   ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
                                   ((2,1),Empty Checked),((2,2),Empty NotChecked)]) (mkStdGen 10))
                                   == ([((1,2),Ship NotChecked),((0,2),Empty NotChecked),
-                                     ((0,0),Empty NotChecked),((2,2),Empty NotChecked),
+                                     ((0,0),Empty NotChecked),((2,2),Empty NotChecked),s
                                      ((2,0),Empty NotChecked)])
 -}
 filterShootList :: Board -> StdGen -> (ShootList, StdGen)
@@ -608,8 +603,8 @@ filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
                            ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
                            ((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
                            == [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
-                           ((1,0),Ship NotChecked),((1,1),Ship NotChecked),((1,2),Ship NotChecked),
-                           ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
+                              ((1,0),Ship NotChecked),((1,1),Ship NotChecked),((1,2),Ship NotChecked),
+                              ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
 -}
 removeChecked :: [(CellCoord, Cell)] -> [(CellCoord, Cell)]
 removeChecked s = filter (\(coord, cell) -> cell == Empty NotChecked || cell == Ship NotChecked) s
@@ -635,6 +630,10 @@ updateStack s _ = s
                            ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
                            ((2,1),Empty Checked),((2,2),Empty NotChecked)]) ((1,0),Ship Checked)
                            == [((1,1),Ship Checked),((0,0),Empty NotChecked),((2,0),Empty NotChecked)]
+             cohesiveCells (array ((0,0),(2,2)) [((0,0), Ship  NotChecked),((0,1),Empty Checked),((0,2),
+                            Ship NotChecked),((1,0),Ship Checked),((1,1),Ship Checked),((1,2),Ship NotChecked),
+                            ((2,0),Empty NotChecked),((2,1),Empty Checked),((2,2),Empty NotChecked)]) ((1,0),Ship Checked)
+                            == [((1,1),Ship Checked),((0,0),Ship NotChecked),((2,0),Empty NotChecked)]
 -}
 cohesiveCells :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCells b ((c,r),x) = map (\coord -> (coord, b ! coord)) (filter validCoordinates [(c,r+1), (c,r-1), (c-1,r), (c+1,r)])
@@ -651,23 +650,22 @@ isShip :: (CellCoord,Cell) -> Bool
 isShip (_, Ship NotChecked) = True
 isShip _ = False
 
-{- aiShootAux (board,stack) sl
+{- aiShootAux (board,stack)
    checks first cell in stack
-   PRE: Stack is not empty, ShootList is not empty
+   PRE: Stack is not empty
    RETURNS: (board,stack) where first cell in stack is checked in board
    EXAMPLES: aiShootAux (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
                         ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],[((1,0),Empty NotChecked)]) 
-                        [((0,0),Ship NotChecked),((1,1),Empty NotChecked)] 
                         == (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
                            ((1,0),Empty Checked),((1,1),Empty NotChecked)],[])
 -}
-aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
-aiShootAux (b, s@(coord,cell):st)  l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st))
-                                     | otherwise = (checkCell b coord, st)
+aiShootAux :: (Board,Stack) -> (Board,Stack)
+aiShootAux (b, s@(coord,cell):st) | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st))
+                                  | otherwise = (checkCell b coord, st)
 
 {- aiShoot (board,stack) gen
    checks first cell in stack
-   PRE: ShootList is not empty
+   PRE: Board has NotChecked cells
    RETURNS: ((board,stack),gen) where first cell in stack is checked in board
    EXAMPLES: fst (aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
                           ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],
@@ -681,7 +679,7 @@ aiShootAux (b, s@(coord,cell):st)  l | isShip s = (checkCell b coord, removeChec
                              ((1,0),Empty Checked),((1,1),Empty NotChecked)],[]))
 -}
 aiShoot :: (Board,Stack) -> StdGen -> ((Board, Stack), StdGen)
-aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList) newList,newGen)
+aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList),newGen)
                      where (newList, newGen) = filterShootList b gen
 
 --------------------- EventHandler --------------------------------
@@ -690,7 +688,6 @@ aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList) newLis
     handles all input from user
     RETURNS: game with possible modifications decided by event
 -}
-
 eventHandler :: Event -> Game -> Game
 eventHandler (EventKey (SpecialKey KeyEnter) Down _ _) game =
      case gameStage game of 
@@ -802,7 +799,7 @@ test9F = TestCase $ assertEqual "updateStack: empty Stack and ShootList" [] (upd
 test10F = TestCase $ assertEqual "cohesiveCells" ([((1,1),Ship Checked),((0,0),Empty NotChecked),((2,0),Empty NotChecked)]) (cohesiveCells (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty Checked),((0,2),Empty NotChecked),((1,0),Ship Checked),((1,1),Ship Checked),((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,1),Empty Checked),((2,2),Empty NotChecked)]) ((1,0),Ship Checked))
 test11F = TestCase $ assertEqual "isShip: not checked ship" True (isShip ((1,1),Ship NotChecked))
 test12F = TestCase $ assertEqual "isShip: already checked ship" False (isShip ((9,0),Ship Checked))
-test13F = TestCase $ assertEqual "aiShootAux" (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),((1,0),Empty Checked),((1,1),Empty NotChecked)],[]) (aiShootAux (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)],[((1,0),Empty NotChecked)]) [((0,0),Ship NotChecked),((1,1),Empty NotChecked)])
+test13F = TestCase $ assertEqual "aiShootAux" (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),((1,0),Empty Checked),((1,1),Empty NotChecked)],[]) (aiShootAux (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)],[((1,0),Empty NotChecked)]))
 test14F = TestCase $ assertEqual "aiShoot: empty stack" (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),((1,0),Empty Checked),((1,1),Empty NotChecked)],[]) (fst $ aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)],[((1,0),Empty NotChecked)]) (mkStdGen 10))
 test15F = TestCase $ assertEqual "aiShoot: non-empty stack" ((array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),((1,0),Empty Checked),((1,1),Empty NotChecked)],[])) (fst $ aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),((1,0),Empty NotChecked),((1,1),Empty NotChecked)],[((1,0),Empty NotChecked)]) (mkStdGen 10))
 test16F = TestCase $ assertEqual "aiShoot: increasing shot cells" 1  (cellCount (Empty Checked) b)
