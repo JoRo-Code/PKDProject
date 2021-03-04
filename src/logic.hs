@@ -12,7 +12,7 @@ import Test.HUnit
     RETURNS: number of cells in board with cell
     EXAMPLES: 
                 cellCount (Ship Checked) initBoard == 0
-                cellCount (Ship NotChecked) initBoard == 100
+                cellCount (Empty NotChecked) initBoard == 100
 -}
 cellCount :: Cell -> Board -> Int
 cellCount cell board = length $ filter (==cell) (elems board)
@@ -21,7 +21,14 @@ cellCount cell board = length $ filter (==cell) (elems board)
     counts number of cells with Ship NotChecked on a board
     RETURNS: number of cells in board with Ship NotChecked
     EXAMPLES: 
-                shipsCount initBoard == 0
+              shipsCount (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
+                         ((0,1),Ship NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),
+                         ((1,2),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Ship NotChecked)]) 
+                          == 2
+              shipsCount (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
+                         ((0,1),Empty NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),
+                         ((1,2),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]) 
+                          == 0
 -}
 shipsCount :: Board -> Int
 shipsCount = cellCount (Ship NotChecked)
@@ -169,8 +176,8 @@ placeShip game coord s d | validShipPlacement board coord s d =
 {- mouseToCell mousePos boardPos
     calculates current cell from mouseposition
     RETURNS: the corresponding cellCoordinates for mousePos on a board with boardPos
-    EXAMPLES: mouseToCell (100, 40) ((0.0,0.0),(600.0,600.0)) == (5,2)
-              mouseToCell (1000, 40) ((900.0,0.0),(1500.0,600.0)) == (5,2)
+    EXAMPLES: mouseToCell (-200, 280) ((0.0,0.0),(600.0,600.0)) == (9, 9), (when screenWidth == 1440, screenDivider == 300, n == 10)
+              mouseToCell (200, -280) ((900.0,0.0),(1500.0,600.0)) == (0, 0), (when screenWidth == 1440, screenDivider == 300, n == 10)
 -}
 mouseToCell :: ScreenCoord -> BoardPos -> CellCoord
 mouseToCell (x, y) boardPos@((x1,y1),(x2,y2)) =  (floor ((x - x1 + boardWidth + screenDivider * 0.5) / cellWidth), floor ((y - y1 + boardHeight  * 0.5) / cellHeight ))
@@ -374,9 +381,9 @@ checkWin boardUser boardAI = case (allShipsChecked boardUser, allShipsChecked bo
 {- updateStats (statsUser, statsAI) winner
     changes stats according to last winner
     RETURNS: (statsUser, statsAI) updated according to winner
-    EXAMPLES: updateStats ((User, 1), (AI, 1)) (Just User) = ((User, 2), (AI, 1))
-              updateStats ((User, 1), (AI, 1)) (Just AI)   = ((User, 1), (AI, 2))
-              updateStats ((User, 1), (AI, 1)) Nothing     = ((User, 1), (AI, 1))
+    EXAMPLES: updateStats ((User, 1), (AI, 1)) (Just User) == ((User, 2), (AI, 1))
+              updateStats ((User, 1), (AI, 1)) (Just AI)   == ((User, 1), (AI, 2))
+              updateStats ((User, 1), (AI, 1)) Nothing     == ((User, 1), (AI, 1))
 -}
 
 updateStats :: Stats -> Maybe Player -> Stats
@@ -605,6 +612,14 @@ filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
                            ((2,1),Empty Checked),((2,2),Empty NotChecked)]
                            == [((0,0),Empty NotChecked),((0,2),Empty NotChecked),
                               ((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,2),Empty NotChecked)]
+             removeChecked [((0,0),Empty NotChecked),
+                           ((0,1),Empty NotChecked),((0,2),Empty NotChecked),
+                           ((1,0),Ship NotChecked),((1,1),Ship NotChecked),
+                           ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
+                           ((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
+                           == [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
+                           ((1,0),Ship NotChecked),((1,1),Ship NotChecked),((1,2),Ship NotChecked),
+                           ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
 -}
 
 removeChecked :: [(CellCoord, Cell)] -> [(CellCoord, Cell)]
