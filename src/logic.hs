@@ -424,32 +424,33 @@ playerShoot game coord | validCoordinates coord && not (isChecked (gameBoardAI g
 
 ---------------------------- Placing AI ------------------------
 
-
 {- allCoords
     shows all cellcoords within a global board
     RETURNS: all possible cellcoords on board regarding board size n
-    EXAMPLES: allCoords == [(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3),(2,0),(2,1),(2,2),(2,3),(3,0),(3,1),(3,2),(3,3)]
-                where n = 4
+    EXAMPLES: allCoords == [(0,0),(0,1),(0,2),(0,3),(0,4),(0,5),(0,6),(0,7),(0,8),(0,9),(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),
+                           (1,7),(1,8),(1,9),(2,0),(2,1),(2,2),(2,3),(2,4),(2,5),(2,6),(2,7),(2,8),(2,9),(3,0),(3,1),(3,2),(3,3),
+                           (3,4),(3,5),(3,6),(3,7),(3,8),(3,9),(4,0),(4,1),(4,2),(4,3),(4,4),(4,5),(4,6),(4,7),(4,8),(4,9),(5,0),
+                           (5,1),(5,2),(5,3),(5,4),(5,5),(5,6),(5,7),(5,8),(5,9),(6,0),(6,1),(6,2),(6,3),(6,4),(6,5),(6,6),(6,7),
+                           (6,8),(6,9),(7,0),(7,1),(7,2),(7,3),(7,4),(7,5),(7,6),(7,7),(7,8),(7,9),(8,0),(8,1),(8,2),(8,3),(8,4),
+                           (8,5),(8,6),(8,7),(8,8),(8,9),(9,0),(9,1),(9,2),(9,3),(9,4),(9,5),(9,6),(9,7),(9,8),(9,9)]
 -}
-
 allCoords :: [CellCoord]
 allCoords = [(c, r) | c <- [0..n-1], r <- [0..n-1]]
 
 {- findValidDirectionalPlacements board coords shipsize direction
    finds possible positions of a ship in a certain direction
    RETURNS: all possible valid coords of ship with direction on board
-   EXAMPLES: findValidDirectionalPlacements array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
-                                                  ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
-                                                  ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
-                                                  [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)] 3 Horizontal
-                                                  == [((0,0),Horizontal),((0,1),Horizontal),((0,2),Horizontal)]
-             findValidDirectionalPlacements array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
-                                                  ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
-                                                  ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
-                                                  [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)] 2 Vertical
-                                                  == [((0,1),Vertical),((0,2),Vertical),((1,1),Vertical),((1,2),Vertical),((2,1),Vertical),((2,2),Vertical)]
+   EXAMPLES: findValidDirectionalPlacements (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
+                                            ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
+                                            ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]) 
+                                            [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)] 3 Horizontal 
+                                            == [((0,0),Horizontal),((0,1),Horizontal),((0,2),Horizontal)]
+             findValidDirectionalPlacements (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
+                                            ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),
+                                            ((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)])
+                                            [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)] 2 Vertical
+                                            == [((0,1),Vertical),((0,2),Vertical),((1,1),Vertical),((1,2),Vertical),((2,1),Vertical),((2,2),Vertical)]
 -}
-
 findValidDirectionalPlacements :: Board -> [CellCoord] -> ShipSize ->  Direction -> [(CellCoord, Direction)]
 findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filter (\coord -> validShipPlacement b coord s d) coords
                  
@@ -463,18 +464,16 @@ findValidDirectionalPlacements b coords s d = map (\coord -> (coord, d)) $ filte
               == [((0,0),Horizontal),((0,1),Horizontal),((0,2),Horizontal),
                  ((0,2),Vertical),((1,2),Vertical),((2,2),Vertical)]
 -}
-
 findAllValidPlacements :: Board -> ShipSize -> [(CellCoord, Direction)]
 findAllValidPlacements b s = findValidDirectionalPlacements b allCoords s Horizontal ++ findValidDirectionalPlacements b allCoords s Vertical 
 
 {- randomElement list gen
     randomly picks an element of list
     RETURNS: (randomly generated element of list with gen, new seed generated with gen)
-    EXAMPLES: randomElement [1,2,3,4,5,6,7,8] (mkStdGen 10) == (7,StdGen {unStdGen = SMGen 7847668597276082904 614480483733483467})
-              randomElement [1,2,3,4,5,6,7,8] (mkStdGen 11) == (4,StdGen {unStdGen = SMGen 4664641791676752737 5833679380957638813})
-              randomElement ['a','b','c','d','e'] (mkStdGen 10) == ('d',StdGen {unStdGen = SMGen 9076629564743049838 614480483733483467})
+    EXAMPLES: fst (randomElement [1,2,3,4,5,6,7,8] (mkStdGen 10)) == 7
+              fst (randomElement [1,2,3,4,5,6,7,8] (mkStdGen 11)) == 4
+              fst (randomElement ['a','b','c','d','e'] (mkStdGen 10)) == 'd'
 -}
-
 randomElement :: [a] -> StdGen -> (a, StdGen)
 randomElement list gen = (list !! randomInt, newGen)
                      where range = (0, length list - 1)
@@ -483,15 +482,14 @@ randomElement list gen = (list !! randomInt, newGen)
 {- placeShipAI gen board ship placements
        updates board with a random placement of ship
        RETURNS: (board with ship integrated randomly with placements and gen, new seed generated with gen)
-       EXAMPLES: placeShipAI (mkStdGen 10) b 3 (findAllValidPlacements b 3)
-                    where b = array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
-                    ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Empty NotChecked),
-                    ((2,1),Empty NotChecked),((2,2),Empty NotChecked)]
-                    == (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
-                       ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Ship NotChecked),
-                       ((2,1),Ship NotChecked),((2,2),Ship NotChecked)],StdGen {unStdGen = SMGen 8462149081009566371 614480483733483467})
+       EXAMPLES: fst (placeShipAI (mkStdGen 10) b 3 (findAllValidPlacements b 3)
+                     where b = (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
+                     ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Empty NotChecked),
+                     ((2,1),Empty NotChecked),((2,2),Empty NotChecked)])
+                     == (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
+                        ((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Ship NotChecked),
+                        ((2,1),Ship NotChecked),((2,2),Ship NotChecked)])
 -}
-
 placeShipAI :: StdGen -> Board -> ShipSize -> [(CellCoord, Direction)] -> (Board, StdGen)
 placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
                              where ((coord , d), newGen) = randomElement placements gen
@@ -499,21 +497,19 @@ placeShipAI gen b s placements = (placeShipAux b coord s d, newGen)
 {- placeMultipleShipsAI gen board ships
        places the ships on random places on the board
        RETURNS: (ships integrated randomly on board with gen, new seed generated with gen)
-       EXAMPLES: placeMultipleShipsAI (mkStdGen 10) (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
+       EXAMPLES: fst (placeMultipleShipsAI (mkStdGen 10) (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
                  ((0,1),Empty NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),
                  ((1,2),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]) 
-                 [((1,2), Horizontal, 2),((0,0), Vertical, 2)]
+                 [((1,2), Horizontal, 2),((0,0), Vertical, 2)])
                  == (array ((0,0),(2,2)) [((0,0),Ship NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),
                     ((1,0),Ship NotChecked),((1,1),Empty NotChecked),((1,2),Ship NotChecked),((2,0),Empty NotChecked),
-                    ((2,1),Empty NotChecked),((2,2),Ship NotChecked)],StdGen {unStdGen = SMGen 10305590532210016772 614480483733483467})
+                    ((2,1),Empty NotChecked),((2,2),Ship NotChecked)])
 -}
-
 placeMultipleShipsAI :: StdGen -> Board -> Ships -> (Board, StdGen)
 -- VARIANT: length ships
 placeMultipleShipsAI gen b [] = (b, gen)
 placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBoard ships
                                       where (newBoard, newGen) = placeShipAI gen b s (findAllValidPlacements b s)
---placeMultipleShipsAI (mkStdGen 10) (array ((0,0),(2,2)) [((0,0),Empty NotChecked),((0,1),Empty NotChecked),((0,2),Empty NotChecked),((1,0),Empty NotChecked),((1,1),Empty NotChecked),((1,2),Empty NotChecked),((2,0),Empty NotChecked),((2,1),Empty NotChecked),((2,2),Empty NotChecked)]) [((1,2), Horizontal, 2),((0,0), Vertical, 2)]
 
 --------------------- Shoot AI --------------------------------
 
@@ -524,7 +520,6 @@ placeMultipleShipsAI gen b ((_, _, s):ships) = placeMultipleShipsAI newGen newBo
              getCol ((9,0),Ship Checked) == 9
              getCol ((1,1),Ship NotChecked) == 1
 -}
-
 getCol :: (CellCoord,Cell) -> Col
 getCol ((a,_),_) = a
 
@@ -535,7 +530,6 @@ getCol ((a,_),_) = a
              getRow ((9,0),Ship Checked) == 0
              getRow ((1,1),Ship NotChecked) == 1
 -}
-
 getRow :: (CellCoord,Cell) -> Row
 getRow ((_,b),_) = b
 
@@ -552,7 +546,6 @@ getRow ((_,b),_) = b
                             ((1,1),Ship Checked),((1,2),Ship NotChecked),
                             ((2,0),Empty NotChecked),((2,1),Empty Checked),((2,2),Empty NotChecked)]
 -}
-
 aiShootList :: Board -> ShootList
 aiShootList = assocs
 
@@ -567,9 +560,8 @@ aiShootList = assocs
                     == ([((2,1),Empty Checked),((1,2),Ship NotChecked),
                        ((1,0),Ship Checked),((0,1),Empty Checked),
                        ((0,0),Empty NotChecked),((0,2),Empty NotChecked),
-                       ((1,1),Ship Checked),((2,0),Empty NotChecked),((2,2),Empty NotChecked)]
+                       ((1,1),Ship Checked),((2,0),Empty NotChecked),((2,2),Empty NotChecked)])
 -}
-
 aiPrio :: ShootList -> ShootList -> ShootList
 -- VARIANT: length sl
 aiPrio [] acc = acc
@@ -580,17 +572,15 @@ aiPrio (x:xs) acc
 {- filterShootList board gen
    creates a ShootList with random order of all cells with state NotChecked from board with gen and sorts by priority
    RETURNS: a tuple consisting of a ShootList of all cells with state NotChecked and StdGen
-   EXAMPLES: filterShootList (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
-                             ((0,1),Empty Checked),((0,2),Empty NotChecked),
-                             ((1,0),Ship Checked),((1,1),Ship Checked),
-                             ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
-                             ((2,1),Empty Checked),((2,2),Empty NotChecked)]) (mkStdGen 10)
-                             == ([((1,2),Ship NotChecked),((0,2),Empty NotChecked),
-                                ((0,0),Empty NotChecked),((2,2),Empty NotChecked),
-                                ((2,0),Empty NotChecked)],
-                                StdGen {unStdGen = SMGen 15835914885811367975 614480483733483467})
+   EXAMPLES: fst (filterShootList (array ((0,0),(2,2)) [((0,0),Empty NotChecked),
+                                  ((0,1),Empty Checked),((0,2),Empty NotChecked),
+                                  ((1,0),Ship Checked),((1,1),Ship Checked),
+                                  ((1,2),Ship NotChecked),((2,0),Empty NotChecked),
+                                  ((2,1),Empty Checked),((2,2),Empty NotChecked)]) (mkStdGen 10))
+                                  == ([((1,2),Ship NotChecked),((0,2),Empty NotChecked),
+                                     ((0,0),Empty NotChecked),((2,2),Empty NotChecked),
+                                     ((2,0),Empty NotChecked)])
 -}
-
 filterShootList :: Board -> StdGen -> (ShootList, StdGen)
 filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
     where (shuffledList, newGen) = shuffle (aiShootList b) gen 
@@ -606,7 +596,6 @@ filterShootList b gen = (removeChecked (aiPrio shuffledList []), newGen)
                            == [((0,0),Empty NotChecked),((0,2),Empty NotChecked),
                               ((1,2),Ship NotChecked),((2,0),Empty NotChecked),((2,2),Empty NotChecked)]
 -}
-
 removeChecked :: [(CellCoord, Cell)] -> [(CellCoord, Cell)]
 removeChecked s = filter (\(coord, cell) -> cell == Empty NotChecked || cell == Ship NotChecked) s
 
@@ -617,7 +606,6 @@ removeChecked s = filter (\(coord, cell) -> cell == Empty NotChecked || cell == 
              updateStack [((0,0),Empty NotChecked)] [((1,2),Ship NotChecked)] == [((0,0),Empty NotChecked)]
              updateStack [] [] == []
 -}
-
 updateStack :: Stack -> ShootList -> Stack
 updateStack [] (x:xs) = [x]
 updateStack s _ = s
@@ -633,7 +621,6 @@ updateStack s _ = s
                            ((2,1),Empty Checked),((2,2),Empty NotChecked)]) ((1,0),Ship Checked)
                            == [((1,1),Ship Checked),((0,0),Empty NotChecked),((2,0),Empty NotChecked)]
 -}
-
 cohesiveCells :: Board -> (CellCoord,Cell) -> Stack
 cohesiveCells b ((c,r),x) = map (\coord -> (coord, b ! coord)) (filter validCoordinates [(c,r+1), (c,r-1), (c-1,r), (c+1,r)])
 
@@ -645,7 +632,6 @@ cohesiveCells b ((c,r),x) = map (\coord -> (coord, b ! coord)) (filter validCoor
              isShip ((1,1),Ship NotChecked)  == True
              isShip ((2,2),Empty Checked)    == False
 -}
-
 isShip :: (CellCoord,Cell) -> Bool
 isShip (_, Ship NotChecked) = True
 isShip _ = False
@@ -660,7 +646,6 @@ isShip _ = False
                         == (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
                            ((1,0),Empty Checked),((1,1),Empty NotChecked)],[])
 -}
-
 aiShootAux :: (Board,Stack) -> ShootList -> (Board,Stack)
 aiShootAux (b, s@(coord,cell):st)  l | isShip s = (checkCell b coord, removeChecked $ nub (cohesiveCells b s ++ st))
                                      | otherwise = (checkCell b coord, st)
@@ -669,20 +654,17 @@ aiShootAux (b, s@(coord,cell):st)  l | isShip s = (checkCell b coord, removeChec
    checks first cell in stack
    PRE: ShootList is not empty
    RETURNS: ((board,stack),gen) where first cell in stack is checked in board
-   EXAMPLES: aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
-                     ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],
-                     [((1,0),Empty NotChecked)]) (mkStdGen 10) 
-                     == ((array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
-                        ((1,0),Empty Checked),((1,1),Empty NotChecked)],[]),StdGen 
-                        {unStdGen = SMGen 9076629564743049838 614480483733483467})
-             aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
-                     ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],
-                     []) (mkStdGen 10) 
-                     == ((array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
-                        ((1,0),Empty Checked),((1,1),Empty NotChecked)],[]),StdGen 
-                        {unStdGen = SMGen 9076629564743049838 614480483733483467})
+   EXAMPLES: fst (aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                          ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],
+                          [((1,0),Empty NotChecked)]) (mkStdGen 10)) 
+                          == ((array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                             ((1,0),Empty Checked),((1,1),Empty NotChecked)],[]))
+             fst (aiShoot (array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                          ((1,0),Empty NotChecked),((1,1),Empty NotChecked)],
+                          []) (mkStdGen 10)) 
+                          == ((array ((0,0),(1,1)) [((0,0),Ship NotChecked),((0,1),Ship Checked),
+                             ((1,0),Empty Checked),((1,1),Empty NotChecked)],[]))
 -}
-
 aiShoot :: (Board,Stack) -> StdGen -> ((Board, Stack), StdGen)
 aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList) newList,newGen)
                      where (newList, newGen) = filterShootList b gen
