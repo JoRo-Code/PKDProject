@@ -18,6 +18,8 @@ fps = 30
 
 {- main
        main loop which controls output in gloss
+       SIDEEFFECTS: gloss-window
+       
 -}
 main :: IO ()
 main = do
@@ -27,7 +29,7 @@ main = do
               window 
               backgroundColor 
               fps 
-              initGame {gameBoardAI = initGameBoardAI, gen = newGen} 
+              initGame      {gameBoardAI = initGameBoardAI, gen = newGen} 
               drawGame 
               eventHandler 
               animationFunc
