@@ -688,7 +688,6 @@ aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList),newGen
     handles all input from user
     RETURNS: game with possible modifications decided by event
 -}
-
 eventHandler :: Event -> Game -> Game
 eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =   -- shooting with mouseclick
     case (winner game, gameStage game) of
