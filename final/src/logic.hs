@@ -709,18 +709,18 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =   -- shoot
                                                                            , performAnimation
                                                                            )
                                                       } coord 
-                                                where (_,_,_, end, _, _) = shootAnimation game
-                                                      coord = mouseToCell mousePos boardAIPos
-                                                      performAnimation = isWithinBoard boardAIPos mousePos 
-                                                                         && getState (gameBoardAI game) coord == NotChecked
-         (_, Shooting User)       -> initGame   { gameBoardAI = newBoard
-                                                , gen = newGen
+                                                where (_,_,_, end, _, _)   = shootAnimation game
+                                                      coord                = mouseToCell mousePos boardAIPos
+                                                      performAnimation     = isWithinBoard boardAIPos mousePos 
+                                                                              && getState (gameBoardAI game) coord == NotChecked
+         (_, Shooting User)       -> initGame   { gameBoardAI  = newBoard
+                                                , gen          = newGen
                                                 , currentRound = currentRound game + 1
-                                                , stats = stats game
+                                                , stats        = stats game
                                                 }
                                                 where (newBoard, newGen) = placeMultipleShipsAI (gen game) initBoard initShips
          _                        -> game
-         
+
 eventHandler _ game = game 
 ----------------------------- TESTCASES --------------------------------
 
