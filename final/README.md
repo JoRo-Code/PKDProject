@@ -20,4 +20,9 @@ to run
 
 
 requirements:
-System.Random, Graphics.Gloss
+
+System.Random
+
+Graphics.Gloss
+
+Test.HUnit
