@@ -689,21 +689,6 @@ aiShoot (b,s) gen = (aiShootAux (b,removeChecked $ updateStack s newList),newGen
     RETURNS: game with possible modifications decided by event
 -}
 eventHandler :: Event -> Game -> Game
-eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =   -- shooting with mouseclick
-    case (winner game, gameStage game) of
-         (Nothing, Shooting User) -> playerShoot game {shootAnimation = (hitShip (gameBoardAI game) coord,startRadius, 
-                                                       mousePos, end, startDerivative, performAnimation)} coord 
-                                                where (_,_,_, end, _, _) = shootAnimation game
-                                                      coord = mouseToCell mousePos boardAIPos
-                                                      performAnimation = isWithinBoard boardAIPos mousePos 
-                                                                         && getState (gameBoardAI game) coord == NotChecked
-         (_, Shooting User) -> initGame {gameBoardAI = newBoard
-                                        , gen = newGen
-                                        , currentRound = currentRound game + 1
-                                        , stats = stats game
-                                        }
-                                        where (newBoard, newGen) = placeMultipleShipsAI (gen game) initBoard initShips
-
 eventHandler (EventKey (key) Down _ _) game =           -- controlling placingShip with keys
     case gameStage game of 
         Placing User -> case key of
@@ -713,6 +698,29 @@ eventHandler (EventKey (key) Down _ _) game =           -- controlling placingSh
                             _                   -> game
 
         _           -> game
+
+eventHandler (EventKey (MouseButton LeftButton) Up _ mousePos) game =   -- shooting with mouseclick
+    case (winner game, gameStage game) of
+         (Nothing, Shooting User) -> playerShoot game { shootAnimation =   ( hitShip (gameBoardAI game) coord -- determines color of explosion
+                                                                           , startRadius
+                                                                           , mousePos
+                                                                           , end
+                                                                           , startDerivative
+                                                                           , performAnimation
+                                                                           )
+                                                      } coord 
+                                                where (_,_,_, end, _, _) = shootAnimation game
+                                                      coord = mouseToCell mousePos boardAIPos
+                                                      performAnimation = isWithinBoard boardAIPos mousePos 
+                                                                         && getState (gameBoardAI game) coord == NotChecked
+         (_, Shooting User)       -> initGame   { gameBoardAI = newBoard
+                                                , gen = newGen
+                                                , currentRound = currentRound game + 1
+                                                , stats = stats game
+                                                }
+                                                where (newBoard, newGen) = placeMultipleShipsAI (gen game) initBoard initShips
+         _                        -> game
+         
 eventHandler _ game = game 
 ----------------------------- TESTCASES --------------------------------
 
